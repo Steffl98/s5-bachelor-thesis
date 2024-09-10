@@ -14,10 +14,9 @@ from typing import Tuple, Optional, Literal
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 
 ITERATIONS = 101#int(37000*2 + 1)
-STATE_DIM = 6#72
+STATE_DIM = 6
 DIM = 24
 LR = 0.01
-DECREMENT = 6#10#0
 SAMPLE_LEN = 32000
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
@@ -119,16 +118,6 @@ class AudioDataSet(Dataset):
         amp3 = random.uniform(0, 1) / 3.0
 
         label_data = resample(read_wav(path), fshift*44.1/16.0, offs)
-        #label_data = []
-        """for i in range(50000):
-            fac1 = (float(i)/SAMPLE_LEN)*fshift + (1.0 - float(i)/SAMPLE_LEN)*1.0
-            fac2 = (float(i) / SAMPLE_LEN) * fshift2 + (1.0 - float(i) / SAMPLE_LEN) * 1.0
-            fac3 = (float(i) / SAMPLE_LEN) * fshift3 + (1.0 - float(i) / SAMPLE_LEN) * 1.0
-            time = i / 16000.0
-            phase = time*freq*np.pi*fac1 + shift
-            phase2 = time * freq2 * np.pi*fac2 + shift2
-            phase3 = time * freq3 * np.pi*fac3 + shift3
-            label_data.append(amp * math.sin(phase) + amp2 * math.sin(phase2) + amp3 * math.sin(phase3))"""
         #label_data = resample(label_data, 1.0)
         noise_choice = random.randint(1, 2)
         if (noise_choice == 1):
@@ -178,46 +167,11 @@ class SequenceToSequenceRNN(nn.Module):
         self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
-        """
-        class S5(torch.nn.Module):
-             def __init__(self,
-                 width: int,
-                 state_width: Optional[int] = None,
-                 factor_rank: Optional[int] = None,
-                 block_count: int = 1,
-                 dt_min: float = 0.001,
-                 dt_max: float = 0.1,
-                 liquid: bool = False,
-                 degree: int = 1,
-                 bidir: bool = False,
-                 bcInit: Optional[Initialization] = None):
-         class S5Block(torch.nn.Module):
-            def __init__(self, dim: int, state_dim: int, bidir: bool, block_count: int = 1, liquid: bool = False,
-            degree: int = 1, factor_rank: int | None = None, bcInit: Optional[Initialization] = None,
-            ff_mult: float = 1., glu: bool = True, ff_dropout: float = 0.0, attn_dropout: float = 0.0):
-        """
-        #print("\nInitialized RNN: ")
-        #print(self.rnn)
-        # self.fc = nn.Linear(hidden_size, output_size)
-        # Input: ( ∗, H_in ); Output: ( *, H_out )
+
 
     def forward(self, x):
-        # x shape: (batch_size, seq_length, input_size)
-        #h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
-        #h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))  <-- dont use Variable anymore
         h0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size))
-        #print("\nh0 zeroes")
-        #print(h0)
-        #print("\nAnd their size:")
-        #print(h0.size())
-        #out, _ = self.rnn(x, h0)
-        #print("\nx type:")
-        #print(x.type())
-        #print("\nh0 type:")
-        #print(h0.type())
-        #quit()
-        #out, _ = self.rnn(x.float(), h0)
-        #out, _ = self.rnn(x.float())
+
         out = self.l1(x.float())
         res = out.clone()
         out = self.s5(out)
@@ -227,192 +181,24 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.LN(out)
         out = self.s5b(out)
         out = self.relu(out) + res
-        #out = self.dropout(out)
         out = self.s5c(out)
         out = self.l2(out)
-        #print("\nOut:")
-        #print(out)
-        #out = out[:, -1, :]  # Take the last hidden state
-        ##print("\nLast one: ")
-        ##print(out)
-        #out = self.fc(out)
         return out
 
-
-class CustomS5Block(torch.nn.Module):
-    def __init__(self, dim: int, state_dim: int, bidir: bool, block_count: int = 1, liquid: bool = False, degree: int = 1, factor_rank: int | None = None, bcInit: Optional[Initialization] = None, ff_mult: float = 1., glu: bool = True,
-                 ff_dropout: float = 0.0, attn_dropout: float = 0.0):
-        super().__init__()
-        #dim = 5
-        #state_dim = 72
-        glu = False
-        attn_dropout = 0.5
-        ff_dropout = 0.5
-        self.s5 = s5.S5(dim, state_dim)#, bidir=bidir, block_count=block_count, liquid=liquid, degree=degree, factor_rank=factor_rank, bcInit=bcInit)
-        self.s5b = s5.S5(dim, state_dim)
-        self.s5c = s5.S5(dim, state_dim)
-        self.s5d = s5.S5(dim, state_dim)
-        self.attn_dropout = torch.nn.Dropout(p=attn_dropout)
-        self.attn_dropout2 = torch.nn.Dropout(p=attn_dropout)
-        self.attn_dropout3 = torch.nn.Dropout(p=attn_dropout)
-        self.attn_dropout4 = torch.nn.Dropout(p=attn_dropout)
-        self.geglu = GEGLU() if glu else None
-        self.ff_enc = torch.nn.Linear(dim, dim*10)#dim, int(dim * ff_mult) * (1 + glu), bias=False)
-        self.ff_dec = torch.nn.Linear(dim*10, dim)#int(dim * ff_mult), dim, bias=False)
-        self.ff_norm = torch.nn.LayerNorm(dim)
-        self.ff_dropout = torch.nn.Dropout(p=ff_dropout)
-        self.l1 = nn.Linear(1, dim)
-        self.l2 = nn.Linear(dim, 1)
-
-        self.l1b = nn.Linear(1, dim)
-        self.l2b = nn.Linear(dim, 1)
-        self.tanh = nn.Tanh()
-
-    def forward(self, x, state=None, return_state=False):
-        # Standard transfomer-style block with GEGLU/Pre-LayerNorm
-        x = self.l1(x.float())
-        res = x.clone()
-        x = self.s5(x)#, state=state, return_state=return_state)
-
-        x = self.tanh(x) + res
-        x = self.attn_dropout(x)
-
-        #res = x.clone()
-        #x = self.ff_enc(x)
-        #x = self.tanh(x)
-        #x = self.ff_dec(x) + res
-
-        #x = self.ff_dropout(x)
-
-        res = x.clone()
-        x = self.ff_enc(x)
-        x = self.tanh(x)
-        x = self.ff_dec(x) + res
-        x = self.ff_dropout(x)
-
-        x = self.l2(x)
-
-        """x = self.l1b(x)
-        res = x.clone()
-        x = self.s5c(x)  # , state=state, return_state=return_state)
-        x = self.tanh(x) + res
-        x = self.attn_dropout3(x)
-        res = x.clone()
-        x = self.s5d(x)
-        x = self.tanh(x) + res
-        x = self.attn_dropout4(x)
-        x = self.l2b(x)"""
-        """
-
-        #fx = self.ff_norm(x)
-        res = fx.clone()
-        x = self.ff_enc(fx)
-        if self.geglu is not None:
-            x = self.geglu(x)
-        x = self.ff_dec(x) + res
-        #x = self.ff_dropout(x)  # TODO: test if should be placed inbetween ff or after ff
-
-        if return_state:
-            return x, next_state"""
-        return x
-
-
-class S5Cascade(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.s1 = s5.S5Block(1, STATE_DIM*3, False)
-        self.s2 = s5.S5Block(1, STATE_DIM*2, False)
-        self.s3 = s5.S5Block(1, STATE_DIM*2, False)
-        self.s4 = s5.S5Block(1, STATE_DIM, False)
-        self.s5 = s5.S5Block(1, STATE_DIM, False)
-        self.s6 = s5.S5Block(1, STATE_DIM, False)
-        self.s7 = s5.S5Block(1, STATE_DIM*2, False)
-        self.s8 = s5.S5Block(1, STATE_DIM*2, False)
-        self.s9 = s5.S5Block(1, STATE_DIM*3, False)
-        self.l1 = nn.Linear(1, 2)
-        self.l2 = nn.Linear(2, 3)
-        self.l3 = nn.Linear(3, 2)
-        self.l4 = nn.Linear(2, 1)
-        self.tanh = nn.Tanh()
-    def forward(self, x):
-        x = self.s1(x)
-        x = self.l1(x)
-        a = (x[:,:,0]).unsqueeze(2)
-        b = (x[:,:,1]).unsqueeze(2)
-        a = self.tanh(a)
-        b = self.tanh(b)
-        a = self.s2(a)
-        b = self.s3(b)
-        x = torch.cat((a, b), 2)
-        x = self.l2(x)
-        a = (x[:, :, 0]).unsqueeze(2)
-        b = (x[:, :, 1]).unsqueeze(2)
-        c = (x[:, :, 2]).unsqueeze(2)
-        a = self.tanh(a)
-        b = self.tanh(b)
-        c = self.tanh(c)
-        a = self.s4(a)
-        b = self.s5(b)
-        c = self.s6(c)
-        x = torch.cat((a, b, c), 2)
-        x = self.l3(x)
-        a = (x[:, :, 0]).unsqueeze(2)
-        b = (x[:, :, 1]).unsqueeze(2)
-        a = self.tanh(a)
-        b = self.tanh(b)
-        a = self.s7(a)
-        b = self.s8(b)
-        x = torch.cat((a, b), 2)
-        x = self.l4(x)
-        x = self.tanh(x)
-        x = self.s9(x)
-        #print(x.size())
-        #quit()
-        return x
-
-
-
-class S5_three_to_one(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.s1 = s5.S5Block(1, STATE_DIM, False)
-        self.s2 = s5.S5Block(1, STATE_DIM, False)
-        self.s3 = s5.S5Block(1, STATE_DIM, False)
-        self.s4 = s5.S5Block(3, STATE_DIM*3, False)
-        #self.l1 = nn.Linear(3, 3)
-        #self.l2 = nn.Linear(3, 3)
-        self.l3 = nn.Linear(3, 1)
-        #self.tanh = nn.Tanh()
-    def forward(self, x):
-        a = self.s1(x)
-        b = self.s2(x)
-        c = self.s3(x)
-        x = torch.cat((a, b, c), 2)
-        #res = x.clone()
-        #x = self.l1(x)
-        #x = self.tanh(x)
-        #x = self.l2(x) + res
-        x = self.s4(x)
-        x = self.l3(x)
-        return x
 
 
 def train_model(tr_data, tr_model):
     train_dataloader = DataLoader(tr_data, batch_size=1, shuffle=True)
-    #print("\ntrain_dataloader: ")
-    #print(train_dataloader)
+
     test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
-    #optimizer = optim.RMSprop(model.parameters(), lr=LR)
+
     loss_func = nn.MSELoss()
-    #print("\noptimizer:")
-    #print(optimizer)
-    #optimizer = optim.SGD(model.parameters(), lr=LR, momentum=0.9)
-    #optimizer = optim.Adam(tr_model.parameters(), lr=LR)
+
 
     optimizer = torch.optim.Adam(tr_model.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     tr_model.train()
-    epochs = 1#23
+    epochs = 1
     for ep in range(epochs):
         it = 0
         print("\nEPOCH: ", ep)
@@ -420,36 +206,22 @@ def train_model(tr_data, tr_model):
         loss_counter = 0.0
         for input, target in train_dataloader:
             it = it + 1
-            #print("\ni, input, target")
-            #print(i)
-            #print(input)
-            #print(target)
-            #print("\ntheir sizes each:")
-            #print(input.size(), target.size())
-            #optimizer.zero_grad()
+
             output = tr_model(input)
-            #print("\noutput in loop: ")
-            #print(output)
-            ##print(output.size())
-            ##print(target.size())
-            ##print(output.type())
-            ##print(target.type())
+
             sq1 = torch.square(torch.sub(output, torch.mean(output)))
             sq2 = torch.square(torch.sub(target, torch.mean(target)))
             loss = 2*loss_func(output, target)# + loss_func(torch.mean(output), torch.mean(target)) + loss_func(torch.mean(sq1), torch.mean(sq2))
             loss_counter = loss_counter + loss.item()
-            #print("\nloss", loss)
+
             loss.backward()
-            #torch.nn.utils.clip_grad_value_(tr_model.parameters(), 39)
-            #clip_value = np.percentile(_get_grad_norm(tr_model), 10)
-            #torch.nn.utils.clip_grad_norm_(tr_model.parameters(), 5)
+
 
             if (it % 100 == 0):
                 optimizer.step()
                 optimizer.zero_grad()
             if (it % 100 == 0):
                 batches = ITERATIONS / 100
-                #optimizer.param_groups[0]['lr'] = optimizer.param_groups[0]['lr'] / pow(DECREMENT, 1.0/batches)#1.037 # 104,6x decrease over 128
                 print("\n        Iteration: ", it)
                 print("            Loss: ", loss_counter/100.0)
                 loss_counter = 0.0
@@ -463,32 +235,11 @@ script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 training_data = AudioDataSet(os.path.join(script_dir, "..", "audio", "voice_clips_wav"))
 t1, t2 = training_data.__getitem__(69)
-#print(t1)
-#print(t1.size())
-#print("DEBUG")
-#print(t1)
-#print("And another one")
-#print(t2)
-#print(torch.flatten(t1))
-t_list = (torch.flatten(t1)).tolist()
-#print(t_list.size())
-"""with open("output\\farting_test.rawww", 'wb') as f:
-    for i in range(len(t_list)):
-        packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-        f.write(packed_data)"""
 
-#print("\nTraining Data:")
-#print(training_data)
+t_list = (torch.flatten(t1)).tolist()
+
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1)
-#for param in model:
-#print(model)
-#quit()
-#model = CustomS5Block(dim=30, state_dim=120, bidir=True)
-#model = s5.S5Block(1, STATE_DIM, False)
-#model = S5Cascade()
-#model = S5_three_to_one()
-#model = s5.S5Block(1, STATE_DIM, False)
 
 train_model(training_data, model)
 
@@ -514,11 +265,3 @@ for input, target in test_dataloader:
         for i in range(len(t_list)):
             packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
             f.write(packed_data)
-
-
-
-"""filename = os.path.join(script_dir, "..", "audio", "test_16k_16b_m_l_h_l_h_m_mh.wav")
-#print("Opening file: ", filename, "\n")
-integers = read_wav(filename)
-#print("Signed short data:")
-#print(integers)"""

@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 
-ITERATIONS = 8001#int(37000*2 + 1)
+ITERATIONS = 101#int(37000*2 + 1)
 STATE_DIM = 6#72
 DIM = 24
 LR = 0.01
@@ -458,6 +458,7 @@ def train_model(tr_data, tr_model):
 
 
 script_dir = os.path.dirname(__file__)#os.path.dirname(os.path.abspath(__file__))
+script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 
 training_data = AudioDataSet(os.path.join(script_dir, "..", "audio", "voice_clips_wav"))
@@ -471,10 +472,10 @@ t1, t2 = training_data.__getitem__(69)
 #print(torch.flatten(t1))
 t_list = (torch.flatten(t1)).tolist()
 #print(t_list.size())
-with open("output\\farting_test.rawww", 'wb') as f:
+"""with open("output\\farting_test.rawww", 'wb') as f:
     for i in range(len(t_list)):
         packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-        f.write(packed_data)
+        f.write(packed_data)"""
 
 #print("\nTraining Data:")
 #print(training_data)

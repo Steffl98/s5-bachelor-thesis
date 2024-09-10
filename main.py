@@ -98,7 +98,7 @@ class AudioDataSet(Dataset):
         self.white_noise = read_wav(os.path.join(script_dir, "..", "audio", "noise", "Noise_white_16k.wav"))
         self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
     def __len__(self):
-        return ITERATIONS#100001#40000#8000#len(self.files)
+        return ITERATIONS
     def __getitem__(self, idx):
         path = self.files[idx % 852]
         offs = random.randint(0, 16000)
@@ -118,14 +118,11 @@ class AudioDataSet(Dataset):
         amp3 = random.uniform(0, 1) / 3.0
 
         label_data = resample(read_wav(path), fshift*44.1/16.0, offs)
-        #label_data = resample(label_data, 1.0)
+
         noise_choice = random.randint(1, 2)
         if (noise_choice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac)
-        #if (noise_choice == 2):
-            #audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac)
-        #if (noise_choice == 3):
-#            audio_data = add_noise(label_data, self.trans_noise, self.SNR_fac)
+
         if (noise_choice == 2):
             audio_data = add_noise(label_data, self.white_noise, self.SNR_fac)
         label_data = amplify(label_data, self.SNR_fac)
@@ -152,16 +149,15 @@ class SequenceToSequenceRNN(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        #self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True, nonlinearity='relu')
-        #self.rnn = nn.LSTM(input_size=1, hidden_size=15, num_layers=3, proj_size=1, dropout=0.3, batch_first=True)
-        dim = DIM#5  # 100
+
+        dim = DIM
         self.l1 = nn.Linear(1, dim)
         self.tanh = nn.Tanh()
         self.l2 = nn.Linear(dim, 1)
 
-        state_dim = STATE_DIM#72# 160#64
+        state_dim = STATE_DIM
         bidir = False
-        self.s5 = s5.S5(dim, state_dim)#s5.S5Block(dim, state_dim, bidir)
+        self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
         self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
@@ -229,7 +225,7 @@ def train_model(tr_data, tr_model):
 
 
 
-script_dir = os.path.dirname(__file__)#os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(__file__)
 script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 

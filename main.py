@@ -2,6 +2,7 @@ import struct
 import math
 import random
 import os
+import sys
 import s5
 import numpy as np
 import torch
@@ -12,6 +13,16 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
 Initialization = Literal['dense_columns', 'dense', 'factorized']
+
+script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
+try:
+    argument1 = sys.argv[1]
+    print("Using working directory: ", argument1)
+    script_dir = argument1
+except IndexError:
+    print("Usage: python main.py <audio_dir_path>")
+    print("Attempting to use default path...")
+    #sys.exit(1)
 
 ITERATIONS = 101#int(37000*2 + 1)
 STATE_DIM = 6
@@ -92,10 +103,10 @@ class AudioDataSet(Dataset):
         #print(len(self.files))
         self.transform = transform
         self.target_transform = target_transform
-        self.pink_noise = read_wav(os.path.join(script_dir, "..", "audio", "noise", "noise_pink_flicker_16k.wav"))
-        self.shot_noise = read_wav(os.path.join(script_dir, "..", "audio", "noise", "Noise_Shot_16k.wav"))
-        self.trans_noise = read_wav(os.path.join(script_dir, "..", "audio", "noise", "Noise_transistor_at_16k.wav"))
-        self.white_noise = read_wav(os.path.join(script_dir, "..", "audio", "noise", "Noise_white_16k.wav"))
+        self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
+        self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
+        self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
+        self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
         self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
     def __len__(self):
         return ITERATIONS
@@ -225,11 +236,11 @@ def train_model(tr_data, tr_model):
 
 
 
-script_dir = os.path.dirname(__file__)
-script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
+#script_dir = os.path.dirname(__file__)
+#script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 
-training_data = AudioDataSet(os.path.join(script_dir, "..", "audio", "voice_clips_wav"))
+training_data = AudioDataSet(os.path.join(script_dir, "audio", "voice_clips_wav"))
 t1, t2 = training_data.__getitem__(69)
 
 t_list = (torch.flatten(t1)).tolist()
@@ -247,17 +258,17 @@ for input, target in test_dataloader:
     t_list = (torch.flatten(target)).tolist()
     if (it > 1000):
         quit()
-    with open(f"output\\{it}_tar.rawww", 'wb') as f:
+    with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
         for i in range(len(t_list)):
             packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
             f.write(packed_data)
     t_list = (torch.flatten(output)).tolist()
-    with open(f"output\\{it}_out.rawww", 'wb') as f:
+    with open(os.path.join(script_dir, "code", "output", f"{it}_out.rawww"), 'wb') as f:
         for i in range(len(t_list)):
             packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
             f.write(packed_data)
     t_list = (torch.flatten(input)).tolist()
-    with open(f"output\\{it}_in.rawww", 'wb') as f:
+    with open(os.path.join(script_dir, "code", "output", f"{it}_in.rawww"), 'wb') as f:
         for i in range(len(t_list)):
             packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
             f.write(packed_data)

@@ -5,6 +5,7 @@ import math
 import random
 import os
 import sys
+import time
 import s5
 import numpy as np
 import torch
@@ -258,6 +259,7 @@ def train_model(tr_data, tr_model):
     loss_counter = 0.0
     print("Num iterations: ", num_iterations)
     for batch_idx, (data, target) in enumerate(train_dataloader):
+        start_time = time.time()
         print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
@@ -266,6 +268,8 @@ def train_model(tr_data, tr_model):
         loss_counter = loss_counter + loss.item()
         loss.backward()
         optimizer.step()
+        end_time = time.time()
+        print("    -> took ", (end_time-start_time), " seconds...")
 
 
 

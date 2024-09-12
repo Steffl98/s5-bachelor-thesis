@@ -24,7 +24,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 101#int(37000*2 + 1)
+ITERATIONS = 301#int(37000*2 + 1)
 STATE_DIM = 6
 DIM = 24
 LR = 0.01
@@ -238,10 +238,10 @@ def train_model(tr_data, tr_model):
             if (it % 100 == 0):
                 optimizer.step()
                 optimizer.zero_grad()
-            if (it % 1 == 0):
+            if (it % 100 == 0):
                 batches = ITERATIONS / 100
                 print("\n        Iteration: ", it)
-                print("            Loss: ", loss_counter/1.0)
+                print("            Loss: ", loss_counter/100.0)
                 loss_counter = 0.0
 
 

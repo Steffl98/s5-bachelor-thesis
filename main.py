@@ -1,3 +1,5 @@
+#import faulthandler
+#faulthandler.enable()
 import struct
 import math
 import random
@@ -13,6 +15,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
 Initialization = Literal['dense_columns', 'dense', 'factorized']
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
 try:
@@ -24,7 +27,10 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 301#int(37000*2 + 1)
+ITERATIONS = 1024#int(37000*2 + 1)
+BATCH_SIZE = 64
+NUM_WORKERS = 8
+NUM_EPOCHS = 100
 STATE_DIM = 6
 DIM = 24
 LR = 0.01
@@ -206,7 +212,8 @@ class SequenceToSequenceRNN(nn.Module):
 
 
 def train_model(tr_data, tr_model):
-    train_dataloader = DataLoader(tr_data, batch_size=1, shuffle=True)
+    #train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
+    train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
     print("Initialized data loader.")
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
@@ -221,7 +228,7 @@ def train_model(tr_data, tr_model):
     tr_model.train()
     print("Set model to train.")
     epochs = 1
-    for ep in range(epochs):
+    """for ep in range(epochs):
         it = 0
         print("\nEPOCH: ", ep)
         optimizer.zero_grad()
@@ -239,14 +246,27 @@ def train_model(tr_data, tr_model):
             loss.backward()
 
 
-            if (it % 100 == 0):
+            if (it % 1 == 0):
                 optimizer.step()
                 optimizer.zero_grad()
-            if (it % 100 == 0):
+            if (it % 1 == 0):
                 batches = ITERATIONS / 100
                 print("\n        Iteration: ", it)
-                print("            Loss: ", loss_counter/100.0)
-                loss_counter = 0.0
+                print("            Loss: ", loss_counter/1.0)
+                loss_counter = 0.0"""
+    num_iterations = len(train_dataloader)
+    loss_counter = 0.0
+    print("Num iterations: ", num_iterations)
+    for batch_idx, (data, target) in enumerate(train_dataloader):
+        print("Batch index: ", batch_idx)
+        optimizer.zero_grad()
+        data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
+        output = tr_model(data)
+        loss = loss_func(output, target)
+        loss_counter = loss_counter + loss.item()
+        loss.backward()
+        optimizer.step()
+
 
 
 

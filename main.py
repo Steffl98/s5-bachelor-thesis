@@ -207,15 +207,19 @@ class SequenceToSequenceRNN(nn.Module):
 
 def train_model(tr_data, tr_model):
     train_dataloader = DataLoader(tr_data, batch_size=1, shuffle=True)
+    print("Initialized data loader.")
 
-    test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
+    #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
 
     loss_func = nn.MSELoss()
+    print("Initialized loss func")
 
 
     optimizer = torch.optim.Adam(tr_model.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    print("Initialized optimizer")
 
     tr_model.train()
+    print("Set model to train.")
     epochs = 1
     for ep in range(epochs):
         it = 0
@@ -262,7 +266,7 @@ model = SequenceToSequenceRNN(input_size=1, hidden_size=1)
 print("Finished preparing model.")
 
 train_model(training_data, model)
-print("Now training model.")
+print("Done training model.")
 
 it = 0
 test_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)

@@ -282,7 +282,7 @@ t1, t2 = training_data.__getitem__(69)
 t_list = (torch.flatten(t1)).tolist()
 
 
-model = SequenceToSequenceRNN(input_size=1, hidden_size=1)
+model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
 print("Finished preparing model.")
 
 train_model(training_data, model)
@@ -292,6 +292,7 @@ it = 0
 test_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)
 print("Initialized data loader.")
 for input, target in test_dataloader:
+    input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
     output = model(input)
     t_list = (torch.flatten(target)).tolist()

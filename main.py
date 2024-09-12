@@ -100,6 +100,17 @@ class AudioDataSet(Dataset):
     def __init__(self, dir, transform=None, target_transform=None):
         self.dir = dir
         self.files = list_files(dir)
+        self.wavs = []
+        cntrr = 0
+        for item in self.files:
+            cntrr = cntrr + 1
+            if (cntrr % 32 == 0):
+                percstr = str( (cntrr * 100.0) / len(self.files) )
+                if (len(percstr) > 4):
+                    percstr = percstr[0:4]
+                print("Loading wavs: ", percstr, "%")
+            (self.wavs).append(read_wav(item))
+        print("Done loading wavs.")
         #print(len(self.files))
         self.transform = transform
         self.target_transform = target_transform
@@ -111,7 +122,7 @@ class AudioDataSet(Dataset):
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
-        path = self.files[idx % 852]
+        #path = self.files[idx % 852]
         offs = random.randint(0, 16000)
         shift = random.uniform(0, 2) * np.pi
         fshift = pow(1.2, random.uniform(-1, 1))
@@ -128,7 +139,7 @@ class AudioDataSet(Dataset):
         freq3 = 100 * pow(2, random.uniform(0, 6.32))  # 100 Hz - 8 KHz (nyquist)
         amp3 = random.uniform(0, 1) / 3.0
 
-        label_data = resample(read_wav(path), fshift*44.1/16.0, offs)
+        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
 
         noise_choice = random.randint(1, 2)
         if (noise_choice == 1):
@@ -227,10 +238,10 @@ def train_model(tr_data, tr_model):
             if (it % 100 == 0):
                 optimizer.step()
                 optimizer.zero_grad()
-            if (it % 100 == 0):
+            if (it % 1 == 0):
                 batches = ITERATIONS / 100
                 print("\n        Iteration: ", it)
-                print("            Loss: ", loss_counter/100.0)
+                print("            Loss: ", loss_counter/1.0)
                 loss_counter = 0.0
 
 
@@ -256,8 +267,9 @@ for input, target in test_dataloader:
     it = it + 1
     output = model(input)
     t_list = (torch.flatten(target)).tolist()
-    if (it > 1000):
+    if (it > 30):
         quit()
+    print("Saving file #", it)
     with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
         for i in range(len(t_list)):
             packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))

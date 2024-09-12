@@ -252,17 +252,21 @@ def train_model(tr_data, tr_model):
 
 
 training_data = AudioDataSet(os.path.join(script_dir, "audio", "voice_clips_wav"))
+print("Finished preparing training data.")
 t1, t2 = training_data.__getitem__(69)
 
 t_list = (torch.flatten(t1)).tolist()
 
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1)
+print("Finished preparing model.")
 
 train_model(training_data, model)
+print("Now training model.")
 
 it = 0
 test_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)
+print("Initialized data loader.")
 for input, target in test_dataloader:
     it = it + 1
     output = model(input)

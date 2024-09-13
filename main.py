@@ -125,7 +125,10 @@ class AudioDataSet(Dataset):
         self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
         self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
         self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
-        self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
+        #self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
+        self.SNR_fac = []
+        for _ in range(ITERATIONS):
+            (self.SNR_fac).append(random.uniform(0.75, 1))
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
@@ -154,7 +157,7 @@ class AudioDataSet(Dataset):
 
         if (noise_choice == 2):
             audio_data = add_noise(label_data, self.white_noise, self.SNR_fac)
-        label_data = amplify(label_data, self.SNR_fac)
+        label_data = amplify(label_data, self.SNR_fac[idx])
         return (torch.tensor(audio_data)).unsqueeze(1), (torch.tensor(label_data)).unsqueeze(1)
 
 

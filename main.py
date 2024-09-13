@@ -28,8 +28,8 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 1024#int(37000*2 + 1)
-BATCH_SIZE = 64
+ITERATIONS = 65536#int(37000*2 + 1)
+BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 6
@@ -214,7 +214,7 @@ class SequenceToSequenceRNN(nn.Module):
 
 def train_model(tr_data, tr_model):
     #train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
-    train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
+    train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     print("Initialized data loader.")
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
@@ -224,6 +224,7 @@ def train_model(tr_data, tr_model):
 
 
     optimizer = torch.optim.Adam(tr_model.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4096, 8192, 12288, 16384], gamma=0.316227766)
     print("Initialized optimizer")
 
     tr_model.train()
@@ -268,8 +269,9 @@ def train_model(tr_data, tr_model):
         loss_counter = loss_counter + loss.item()
         loss.backward()
         optimizer.step()
+        scheduler.step()
         end_time = time.time()
-        print("    -> took ", (end_time-start_time), " seconds...")
+        print("Error (log): ", math.log(loss.item()), "  ; took ", (end_time-start_time), " seconds...")
 
 
 

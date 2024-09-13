@@ -262,6 +262,7 @@ def train_model(tr_data, tr_model):
     num_iterations = len(train_dataloader)
     loss_counter = 0.0
     print("Num iterations: ", num_iterations)
+    tot_start_time = time.time()
     for batch_idx, (data, target) in enumerate(train_dataloader):
         start_time = time.time()
         print("Batch index: ", batch_idx)
@@ -275,6 +276,8 @@ def train_model(tr_data, tr_model):
         scheduler.step()
         end_time = time.time()
         print("Error (log): ", math.log(loss.item()), "  ; took ", (end_time-start_time), " seconds...")
+    tot_end_time = time.time()
+    print("In Total took ", (tot_end_time - tot_start_time), " seconds...")
 
 
 

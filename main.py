@@ -18,6 +18,9 @@ from typing import Tuple, Optional, Literal
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+#print("Max size:")
+#print(sys.maxsize)
+
 script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
 try:
     argument1 = sys.argv[1]
@@ -35,7 +38,7 @@ NUM_EPOCHS = 100
 STATE_DIM = 6
 DIM = 24
 LR = 0.01
-SAMPLE_LEN = 32000
+SAMPLE_LEN = 16000
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -56,12 +59,16 @@ def read_wav(filename): # max len after resampling = 982988
     values = []
     with open(filename, 'rb') as f:
         data = f.read(44)
+        capc = 0
         while True:
             data = f.read(2)  # Read 2 bytes for 16-bit integers
             if not data:
                 break
             value = (data_to_type(data, 'h')+0.5)/32767.5 # h = short, H = unsigned short; https://docs.python.org/3/library/struct.html
             values.append(value)
+            capc = capc + 1
+            if (capc == SAMPLE_LEN):
+                break
     return values
 
 def resample(data, ratio, offset=0):
@@ -103,13 +110,33 @@ def list_files(directory):
 
 
 
+def LoadWavs(dir):
+    files = list_files(dir)
+    wavs = []
+    cntrr = 0
+    for item in files:
+        cntrr = cntrr + 1
+        print("Cntrr", cntrr)
+        if (cntrr % 32 == 0):
+            percstr = str((cntrr * 100.0) / len(files))
+            if (len(percstr) > 4):
+                percstr = percstr[0:4]
+            print("Loading wavs: ", percstr, "%")
+        #cur = read_wav(item)
+        ##print("cur size: ", cur.__sizeof__())
+        wavs.append(read_wav(item))
+        print("cur size: ", len(wavs))
+    print("Done loading wavs.")
+    return wavs
+
+
 class AudioDataSet(Dataset):
-    def __init__(self, dir, transform=None, target_transform=None):
-        self.dir = dir
-        self.files = list_files(dir)
-        self.wavs = []
-        cntrr = 0
-        for item in self.files:
+    def __init__(self, wavs, transform=None, target_transform=None):
+        #self.dir = dir
+        #self.files = list_files(dir)
+        #self.wavs = []
+        #cntrr = 0
+        """for item in self.files:
             cntrr = cntrr + 1
             if (cntrr % 32 == 0):
                 percstr = str( (cntrr * 100.0) / len(self.files) )
@@ -117,8 +144,9 @@ class AudioDataSet(Dataset):
                     percstr = percstr[0:4]
                 print("Loading wavs: ", percstr, "%")
             (self.wavs).append(read_wav(item))
-        print("Done loading wavs.")
+        print("Done loading wavs.")"""
         #print(len(self.files))
+        self.wavs = wavs
         self.transform = transform
         self.target_transform = target_transform
         self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
@@ -278,8 +306,8 @@ def train_model(tr_data, tr_model):
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
-
-training_data = AudioDataSet(os.path.join(script_dir, "audio", "voice_clips_wav"))
+audio_data_wav = LoadWavs(os.path.join(script_dir, "audio", "voice_clips_wav"))
+training_data = AudioDataSet(audio_data_wav)
 print("Finished preparing training data.")
 t1, t2 = training_data.__getitem__(69)
 

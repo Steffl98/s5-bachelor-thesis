@@ -357,6 +357,12 @@ plot2x = []
 plot2y = []
 plot3x = []
 plot3y = []
+plot4x = []
+plot4y = []
+plot5x = []
+plot5y = []
+plot6x = []
+plot6y = []
 percentiles_val = [0.0]*10
 percentiles_count = [0]*10
 
@@ -384,6 +390,18 @@ for input, target in test_dataloader:
         fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
 
+        fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
+        fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+
+        fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
+        fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+
+        fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
+        fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
@@ -397,10 +415,16 @@ for input, target in test_dataloader:
     noice = training_data.get_noise_choice(idx)
     if (noice == 1):
         noise_db = -15.9789
+        plot4x.append(SNR_db)
+        plot4y.append(noise_remaining - noise_db - fac_noise_red)
     if (noice == 2):
         noise_db = -7.77903
+        plot5x.append(SNR_db)
+        plot5y.append(noise_remaining - noise_db - fac_noise_red)
     if (noice == 3):
         noise_db = -15.6357
+        plot6x.append(SNR_db)
+        plot6y.append(noise_remaining - noise_db - fac_noise_red)
     plot1x.append(SNR_fac)
     plot1y.append(noise_remaining - noise_db - fac_noise_red)
     plot2x.append(SNR_db)

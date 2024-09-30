@@ -351,8 +351,14 @@ zeros = zeros.to(device, non_blocking=True)
 idx = 0
 #fstat = open(os.path.join(script_dir, "code", "output", "statistics.txt"), "w")
 loss_func = nn.MSELoss()
-plotx = []
-ploty = []
+plot1x = []
+plot1y = []
+plot2x = []
+plot2y = []
+plot3x = []
+plot3y = []
+percentiles_val = [0.0]*10
+percentiles_count = [0]*10
 
 df = pd.DataFrame(columns=["SNR fac", 'noise remaining', "Target dB", "Output dB"])
 for input, target in test_dataloader:
@@ -362,15 +368,30 @@ for input, target in test_dataloader:
     t_list = (torch.flatten(target)).tolist()
     if (it > 300):
         #fstat.close()
-        fig = go.Figure(data=go.Scatter(x=plotx, y=ploty, mode='markers'))
+        fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
+
+        fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
+        fig.update_layout(title="Scatter plot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+
+        for i in range(10):
+            plot3x.append((i/10.0) + 0.05)
+            plot3y.append(percentiles_val[i] / percentiles_count[i])
+
+        fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
+        fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
+
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
     output_db = 10.0 * math.log10(loss_func((output), zeros).item())
     target_db = 10.0 * math.log10(loss_func((target), zeros).item())
     SNR_fac = training_data.get_SNR_fac(idx)
+    SNR_db = math.log10(SNR_fac / (1.0 - SNR_fac))
+
     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
     noise_db = 0.0
     noice = training_data.get_noise_choice(idx)
@@ -380,8 +401,15 @@ for input, target in test_dataloader:
         noise_db = -7.77903
     if (noice == 3):
         noise_db = -15.6357
-    plotx.append(SNR_fac)
-    ploty.append(noise_remaining - noise_db - fac_noise_red)
+    plot1x.append(SNR_fac)
+    plot1y.append(noise_remaining - noise_db - fac_noise_red)
+    plot2x.append(SNR_db)
+    plot2y.append(noise_remaining - noise_db - fac_noise_red)
+
+    prc = math.floor(SNR_fac * 9.999999)  # tmp is int and ranges from 0 to 9
+    percentiles_count[prc] = percentiles_count[prc] + 1
+    percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
+
     pdrow=pd.DataFrame([[SNR_fac,noise_remaining,target_db,output_db]],columns=['SNR fac','noise remaining','Target dB','Output dB'])
     #df = df.append(pdrow, ignore_index=True)
     df = pd.concat([df, pdrow])

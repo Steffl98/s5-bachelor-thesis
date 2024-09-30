@@ -390,7 +390,7 @@ for input, target in test_dataloader:
     output_db = 10.0 * math.log10(loss_func((output), zeros).item())
     target_db = 10.0 * math.log10(loss_func((target), zeros).item())
     SNR_fac = training_data.get_SNR_fac(idx)
-    SNR_db = math.log10(SNR_fac / (1.0 - SNR_fac))
+    SNR_db = 10.0 * math.log10(SNR_fac / (1.0 - SNR_fac))
 
     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
     noise_db = 0.0

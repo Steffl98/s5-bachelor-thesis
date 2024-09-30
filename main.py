@@ -309,6 +309,7 @@ def train_model(tr_data, tr_model):
     nsamples = 0
     with torch.no_grad():
         for inputs, labels in val_dataloader:
+            input, labels = input.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             nsamples = nsamples + 1
             if (nsamples > 1000):
                 break

@@ -392,15 +392,15 @@ for input, target in test_dataloader:
 
         fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
         fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")
 
         fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
         fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")
 
         fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
         fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
 
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()

@@ -31,7 +31,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 384000#int(37000*2 + 1)
+ITERATIONS = 38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -367,9 +367,9 @@ for input, target in test_dataloader:
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()
-    noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros)).item()
-    output_db = 10.0 * math.log10(loss_func((output), zeros)).item()
-    target_db = 10.0 * math.log10(loss_func((target), zeros)).item()
+    noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
+    output_db = 10.0 * math.log10(loss_func((output), zeros).item())
+    target_db = 10.0 * math.log10(loss_func((target), zeros).item())
     SNR_fac = training_data.get_SNR_fac(idx)
     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
     noise_db = 0.0

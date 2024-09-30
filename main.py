@@ -15,6 +15,8 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
+import plotly.graph_objects as go
+import plotly.io as pio
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -28,13 +30,13 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 65536#int(37000*2 + 1)
+ITERATIONS = 384000#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
-STATE_DIM = 6
-DIM = 24
-LR = 0.01
+STATE_DIM = 8
+DIM = 12
+LR = 0.0025
 SAMPLE_LEN = 32000
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
@@ -127,8 +129,9 @@ class AudioDataSet(Dataset):
         self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
         #self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
         self.SNR_fac = []
+        self.noise_choice = []
         for _ in range(ITERATIONS):
-            (self.SNR_fac).append(random.uniform(0.75, 1))
+            (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
@@ -151,14 +154,21 @@ class AudioDataSet(Dataset):
 
         label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
 
-        noise_choice = random.randint(1, 2)
-        if (noise_choice == 1):
+        noice = random.randint(1, 3)
+        (self.noise_choice).append(noice)
+        if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
 
-        if (noise_choice == 2):
+        if (noice == 2):
             audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx])
+        if (noice == 3):
+            audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx])
         label_data = amplify(label_data, self.SNR_fac[idx])
         return (torch.tensor(audio_data)).unsqueeze(1), (torch.tensor(label_data)).unsqueeze(1)
+    def get_SNR_fac(self, x):
+        return self.SNR_fac[x]
+    def get_noise_choice(self, x):
+        return self.noise_choice[x]
 
 
 class SequenceToSequenceRNN(nn.Module):
@@ -202,11 +212,12 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = self.l1(x.float())
         res = out.clone()
+        out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
 
         res = out.clone()
-        out = self.LN(out)
+
         out = self.s5b(out)
         out = self.relu(out) + res
         out = self.s5c(out)
@@ -219,6 +230,8 @@ def train_model(tr_data, tr_model):
     #train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     print("Initialized data loader.")
+    val_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS,
+                                  pin_memory=True)
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
 
@@ -226,8 +239,8 @@ def train_model(tr_data, tr_model):
     print("Initialized loss func")
 
 
-    optimizer = torch.optim.Adam(tr_model.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4096, 8192, 12288, 16384], gamma=0.316227766)
+    optimizer = torch.optim.Adam(tr_model.parameters(), lr=LR, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4096, 8192, 12288, 16384], gamma=0.316227766)
     print("Initialized optimizer")
 
     tr_model.train()
@@ -263,9 +276,13 @@ def train_model(tr_data, tr_model):
     loss_counter = 0.0
     print("Num iterations: ", num_iterations)
     tot_start_time = time.time()
+    cum_time = 0.0
+    cum_err = 0.0
+    flog = open(os.path.join(script_dir, "code", "output", "output_log.txt"), "w")
     for batch_idx, (data, target) in enumerate(train_dataloader):
         start_time = time.time()
-        print("Batch index: ", batch_idx)
+        if (batch_idx % 400 == 0):
+            print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
         output = tr_model(data)
@@ -273,12 +290,34 @@ def train_model(tr_data, tr_model):
         loss_counter = loss_counter + loss.item()
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        #scheduler.step()
         end_time = time.time()
-        print("Error (log): ", math.log(loss.item()), "  ; took ", (end_time-start_time), " seconds...")
+        cum_time = cum_time + (end_time - start_time)
+        cum_err = cum_err + math.log(loss.item())
+        if (batch_idx % 400 == 0):
+            print("Error (log): ", cum_err / 400.0, "  ; took ", cum_time, " seconds...")
+            flog.write(f"{cum_err / 400.0}\t{cum_time}\n")
+            cum_time = 0
+            cum_err = 0
+
     tot_end_time = time.time()
     print("In Total took ", (tot_end_time - tot_start_time), " seconds...")
+    flog.write(str(tot_end_time - tot_start_time))
 
+    tr_model.eval()
+    val_loss = 0.0
+    nsamples = 0
+    with torch.no_grad():
+        for inputs, labels in val_dataloader:
+            nsamples = nsamples + 1
+            if (nsamples > 1000):
+                break
+            outputs = tr_model(inputs)
+            loss = loss + loss_func(outputs, labels)
+            val_loss += loss.item() * inputs.size(0)
+    val_loss /= 1000.0#/= len(val_dataloader.dataset)
+    print(f"Val Loss: {val_loss:.4f}")
+    flog.close()
 
 
 
@@ -301,27 +340,59 @@ train_model(training_data, model)
 print("Done training model.")
 
 it = 0
-test_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)
+test_dataloader = DataLoader(training_data, batch_size=1, shuffle=False)
 print("Initialized data loader.")
+
+zeros = [0] * SAMPLE_LEN
+zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
+zeros = zeros.to(device, non_blocking=True)
+idx = 0
+fstat = open(os.path.join(script_dir, "code", "output", "statistics.txt"), "w")
+loss_func = nn.MSELoss()
+plotx = []
+ploty = []
+
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
     output = model(input)
     t_list = (torch.flatten(target)).tolist()
-    if (it > 30):
+    if (it > 300):
+        fstat.close()
+        fig = go.Figure(data=go.Scatter(x=ploty, y=ploty, mode='markers'))
+        fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
+        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
         quit()
-    print("Saving file #", it)
-    with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
-        for i in range(len(t_list)):
-            packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-            f.write(packed_data)
-    t_list = (torch.flatten(output)).tolist()
-    with open(os.path.join(script_dir, "code", "output", f"{it}_out.rawww"), 'wb') as f:
-        for i in range(len(t_list)):
-            packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-            f.write(packed_data)
-    t_list = (torch.flatten(input)).tolist()
-    with open(os.path.join(script_dir, "code", "output", f"{it}_in.rawww"), 'wb') as f:
-        for i in range(len(t_list)):
-            packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
-            f.write(packed_data)
+    noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros)).item()
+    output_db = 10.0 * math.log10(loss_func((output), zeros)).item()
+    target_db = 10.0 * math.log10(loss_func((target), zeros)).item()
+    SNR_fac = training_data.get_SNR_fac(idx)
+    fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
+    noise_db = 0.0
+    noice = training_data.get_noise_choice(idx)
+    if (noice == 1):
+        noise_db = -15.9789
+    if (noice == 2):
+        noise_db = -7.77903
+    if (noice == 3):
+        noise_db = -15.6357
+    plotx.append(SNR_fac)
+    plotx.append(noise_remaining - noise_db - fac_noise_red)
+    fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")
+    idx = idx + 1
+    if (it < 31):
+        print("Saving file #", it)
+        with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
+            for i in range(len(t_list)):
+                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
+                f.write(packed_data)
+        t_list = (torch.flatten(output)).tolist()
+        with open(os.path.join(script_dir, "code", "output", f"{it}_out.rawww"), 'wb') as f:
+            for i in range(len(t_list)):
+                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
+                f.write(packed_data)
+        t_list = (torch.flatten(input)).tolist()
+        with open(os.path.join(script_dir, "code", "output", f"{it}_in.rawww"), 'wb') as f:
+            for i in range(len(t_list)):
+                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
+                f.write(packed_data)

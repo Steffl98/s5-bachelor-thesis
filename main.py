@@ -362,7 +362,7 @@ for input, target in test_dataloader:
     t_list = (torch.flatten(target)).tolist()
     if (it > 300):
         #fstat.close()
-        fig = go.Figure(data=go.Scatter(x=ploty, y=ploty, mode='markers'))
+        fig = go.Figure(data=go.Scatter(x=plotx, y=ploty, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)

@@ -382,7 +382,7 @@ for input, target in test_dataloader:
         noise_db = -15.6357
     plotx.append(SNR_fac)
     plotx.append(noise_remaining - noise_db - fac_noise_red)
-    pdrow = {'SNR fac' : SNR_fac, 'noise remaining' : noise_remaining, "Target dB" : target_db, 'Output dB' : output_db}
+    pdrow=pd.DataFrame('SNR fac':SNR_fac,'noise remaining':noise_remaining,"Target dB":target_db,'Output dB':output_db)
     #df = df.append(pdrow, ignore_index=True)
     df = pd.concat([df, pdrow])
     #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")

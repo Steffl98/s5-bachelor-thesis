@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
 import plotly.graph_objects as go
 import plotly.io as pio
+import pandas as pd
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -348,21 +349,23 @@ zeros = [0] * SAMPLE_LEN
 zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
 zeros = zeros.to(device, non_blocking=True)
 idx = 0
-fstat = open(os.path.join(script_dir, "code", "output", "statistics.txt"), "w")
+#fstat = open(os.path.join(script_dir, "code", "output", "statistics.txt"), "w")
 loss_func = nn.MSELoss()
 plotx = []
 ploty = []
 
+df = pd.DataFrame(columns=["SNR fac", 'noise remaining', "Target dB", "Output dB"])
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
     output = model(input)
     t_list = (torch.flatten(target)).tolist()
     if (it > 300):
-        fstat.close()
+        #fstat.close()
         fig = go.Figure(data=go.Scatter(x=ploty, y=ploty, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
+        df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros)).item()
     output_db = 10.0 * math.log10(loss_func((output), zeros)).item()
@@ -379,7 +382,9 @@ for input, target in test_dataloader:
         noise_db = -15.6357
     plotx.append(SNR_fac)
     plotx.append(noise_remaining - noise_db - fac_noise_red)
-    fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")
+    pdrow = {'SNR fac' : SNR_fac, 'noise remaining' : noise_remaining, "Target dB" : target_db, 'Output dB' : output_db}
+    df = df.append(pdrow, ignore_index=True)
+    #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")
     idx = idx + 1
     if (it < 31):
         print("Saving file #", it)

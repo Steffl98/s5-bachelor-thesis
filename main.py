@@ -145,6 +145,7 @@ class AudioDataSet(Dataset):
         self.noise_choice = []
         for _ in range(ITERATIONS):
             (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
+            (self.noise_choice).append(random.randint(1, 3))
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
@@ -152,8 +153,7 @@ class AudioDataSet(Dataset):
         fshift = pow(1.2, random.uniform(-1, 1))
         #if (self.mode == 0):
         label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
-        noice = random.randint(1, 3)
-        (self.noise_choice).append(noice)
+        noice = self.noise_choice[idx]
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
         if (noice == 2):

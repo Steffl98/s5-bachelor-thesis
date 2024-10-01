@@ -304,7 +304,7 @@ def train_model(tr_data, val_data, tr_model):
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 
-files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0):
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
 test_data = AudioDataSet(test_files)

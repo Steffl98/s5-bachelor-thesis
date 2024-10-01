@@ -401,6 +401,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
+        plt.clf()
 
         t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
@@ -414,6 +415,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
+        plt.clf()
 
         t_list = (torch.flatten(cum_input)).tolist()
         audio_data_np = np.array(t_list)
@@ -427,6 +429,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
+        plt.clf()
 
         #fstat.close()
         fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))

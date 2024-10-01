@@ -352,22 +352,25 @@ percentiles_val = [0.0]*10
 percentiles_count = [0]*10
 
 df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
-cum_target = 0
-cum_output = 0
-cum_input = 0
+cum_target_flag = 0
+cum_output_flag = 0
+cum_input_flag = 0
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
     output = model(input)
-    if (cum_target == 0):
+    if (cum_target_flag == 0):
+        cum_target_flag = 1
         cum_target = target
     else:
         cum_target = cum_target + target
-    if (cum_output == 0):
+    if (cum_output_flag == 0):
+        cum_output_flag = 1
         cum_output = output
     else:
         cum_output = cum_output + output
-    if (cum_input == 0):
+    if (cum_input_flag == 0):
+        cum_input_flag = 1
         cum_input = input
     else:
         cum_input = cum_input + input

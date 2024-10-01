@@ -399,6 +399,7 @@ for input, target in test_dataloader:
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")
         plt.grid(True)
+        plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
 
         t_list = (torch.flatten(cum_output)).tolist()
@@ -411,6 +412,7 @@ for input, target in test_dataloader:
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")
         plt.grid(True)
+        plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
 
         t_list = (torch.flatten(cum_input)).tolist()
@@ -423,6 +425,7 @@ for input, target in test_dataloader:
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")
         plt.grid(True)
+        plt.xlim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
 
         #fstat.close()

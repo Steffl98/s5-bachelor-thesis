@@ -402,6 +402,7 @@ for input, target in test_dataloader:
         fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
 
+
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
         quit()
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
@@ -434,7 +435,7 @@ for input, target in test_dataloader:
     percentiles_count[prc] = percentiles_count[prc] + 1
     percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
 
-    pdrow=pd.DataFrame([[SNR_fac,noise_remaining,target_db,output_db]],columns=['SNR fac','noise remaining','Target dB','Output dB'])
+    pdrow=pd.DataFrame([[SNR_fac,noise_remaining,target_db,output_db]])#,columns=['SNR fac','noise remaining','Target dB','Output dB'])
     #df = df.append(pdrow, ignore_index=True)
     df = pd.concat([df, pdrow])
     #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")

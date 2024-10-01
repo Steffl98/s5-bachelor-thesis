@@ -315,7 +315,7 @@ for i in all_files:
     size_in_secs = (os.path.getsize(i)-44)/(2.0*16000.0)
     wav_lens.append(size_in_secs)
 
-plt.hist(data, bins=20, color='blue')
+plt.hist(wav_lens, bins=20, color='blue')
 plt.title("Histogram of Audio file lengths")
 plt.xlabel("Seconds")
 plt.ylabel("Frequency")

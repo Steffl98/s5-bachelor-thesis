@@ -143,17 +143,22 @@ class AudioDataSet(Dataset):
         self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
         self.SNR_fac = []
         self.noise_choice = []
+        self.fshift = []
+        self.offs = []
         for _ in range(ITERATIONS):
             (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
+            (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
+            (self.offs).append(random.randint(0, 16000))
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
-        offs = random.randint(0, 16000)
-        fshift = pow(1.2, random.uniform(-1, 1))
-        #if (self.mode == 0):
-        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+        offs = self.offs[idx]
+        fshift = self.fshift[idx]
         noice = self.noise_choice[idx]
+
+        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
         if (noice == 2):

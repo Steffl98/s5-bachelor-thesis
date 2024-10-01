@@ -105,16 +105,25 @@ def list_files(directory):
     return files
 
 
+def get_files_lists(dir, no_val, no_test):
+    files = list_files(dir)
+    random.shuffle(files)
+    val_files = files[:no_val]
+    files = files[no_val:]
+    test_files = files[:no_test]
+    files = files[no_test:]
+    return files, val_files, test_files
 
 class AudioDataSet(Dataset):
-    def __init__(self, dir, transform=None, target_transform=None):
-        self.dir = dir
-        self.files = list_files(dir)
-        self.test_mode = False
+    def __init__(self, files, transform=None, target_transform=None):
+        #self.dir = dir
+        self.files = files#list_files(dir)
+        #self.mode = mode
         self.wavs = []
-        self.wavs_test = []
+        #self.wavs_test = []
+        #self.wavs_val = []
         cntrr = 0
-        for item in self.files:
+        for item in files
             cntrr = cntrr + 1
             if (cntrr % 32 == 0):
                 percstr = str( (cntrr * 100.0) / len(self.files) )
@@ -123,9 +132,9 @@ class AudioDataSet(Dataset):
                 print("Loading wavs: ", percstr, "%")
             (self.wavs).append(read_wav(item))
         print("Done loading wavs.")
-        random.shuffle(self.wavs)
-        self.wavs_test = self.wavs[:200]
-        self.wavs = self.wavs[200:]
+        #random.shuffle(self.wavs)
+        #self.wavs_test = self.wavs[:200]
+        #self.wavs = self.wavs[200:]
         self.transform = transform
         self.target_transform = target_transform
         self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
@@ -141,10 +150,8 @@ class AudioDataSet(Dataset):
     def __getitem__(self, idx):
         offs = random.randint(0, 16000)
         fshift = pow(1.2, random.uniform(-1, 1))
-        if (self.test_mode == False):
-            label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
-        else:
-            label_data = resample(self.wavs_test[idx % len(self.wavs_test)], fshift * 44.1 / 16.0, offs)
+        #if (self.mode == 0):
+        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
         noice = random.randint(1, 3)
         (self.noise_choice).append(noice)
         if (noice == 1):
@@ -159,8 +166,8 @@ class AudioDataSet(Dataset):
         return self.SNR_fac[x]
     def get_noise_choice(self, x):
         return self.noise_choice[x]
-    def set_testing(self, bewl):
-        self.test_mode = bewl
+    #def set_mode(self, mode):
+        #self.mode = mode
 
 
 class SequenceToSequenceRNN(nn.Module):
@@ -218,11 +225,11 @@ class SequenceToSequenceRNN(nn.Module):
 
 
 
-def train_model(tr_data, tr_model):
+def train_model(tr_data, val_data, tr_model):
     #train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     print("Initialized data loader.")
-    val_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS,
+    val_dataloader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS,
                                   pin_memory=True)
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
@@ -235,42 +242,15 @@ def train_model(tr_data, tr_model):
     #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4096, 8192, 12288, 16384], gamma=0.316227766)
     print("Initialized optimizer")
 
-    tr_model.train()
-    print("Set model to train.")
-    epochs = 1
-    """for ep in range(epochs):
-        it = 0
-        print("\nEPOCH: ", ep)
-        optimizer.zero_grad()
-        loss_counter = 0.0
-        for input, target in train_dataloader:
-            it = it + 1
-
-            output = tr_model(input)
-
-            sq1 = torch.square(torch.sub(output, torch.mean(output)))
-            sq2 = torch.square(torch.sub(target, torch.mean(target)))
-            loss = 2*loss_func(output, target)# + loss_func(torch.mean(output), torch.mean(target)) + loss_func(torch.mean(sq1), torch.mean(sq2))
-            loss_counter = loss_counter + loss.item()
-
-            loss.backward()
-
-
-            if (it % 1 == 0):
-                optimizer.step()
-                optimizer.zero_grad()
-            if (it % 1 == 0):
-                batches = ITERATIONS / 100
-                print("\n        Iteration: ", it)
-                print("            Loss: ", loss_counter/1.0)
-                loss_counter = 0.0"""
-    num_iterations = len(train_dataloader)
-    loss_counter = 0.0
-    print("Num iterations: ", num_iterations)
     tot_start_time = time.time()
+    #epochs = NUM_EPOCHS#int(num_iterations)
+    num_iterations = len(train_dataloader)
+    print("Num iterations: ", num_iterations)
+    loss_counter = 0.0
     cum_time = 0.0
     cum_err = 0.0
     flog = open(os.path.join(script_dir, "code", "output", "output_log.txt"), "w")
+    tr_model.train()
     for batch_idx, (data, target) in enumerate(train_dataloader):
         start_time = time.time()
         if (batch_idx % 400 == 0):
@@ -291,25 +271,30 @@ def train_model(tr_data, tr_model):
             flog.write(f"{cum_err / 400.0}\t{cum_time}\n")
             cum_time = 0
             cum_err = 0
+            tr_model.eval()
+            val_loss = 0.0
+            nsamples = 0
+            zeros = [0] * SAMPLE_LEN
+            zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
+            zeros = zeros.to(device, non_blocking=True)
+            with torch.no_grad():
+                for inputs, labels in val_dataloader:
+                    inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                    nsamples = nsamples + 1
+                    if (nsamples > 1000):
+                        break
+                    outputs = tr_model(inputs)
+                    noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
+                    val_loss = val_loss + noise_remaining
+            val_loss /= 1000.0  # /= len(val_dataloader.dataset)
+            print(f"Noise remaining in dB: {val_loss:.4f}")
+            tr_model.train()
 
     tot_end_time = time.time()
     print("In Total took ", (tot_end_time - tot_start_time), " seconds...")
     flog.write(str(tot_end_time - tot_start_time))
 
-    tr_model.eval()
-    val_loss = 0.0
-    nsamples = 0
-    with torch.no_grad():
-        for inputs, labels in val_dataloader:
-            inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-            nsamples = nsamples + 1
-            if (nsamples > 1000):
-                break
-            outputs = tr_model(inputs)
-            loss = loss + loss_func(outputs, labels)
-            val_loss += loss.item() * inputs.size(0)
-    val_loss /= 1000.0#/= len(val_dataloader.dataset)
-    print(f"Val Loss: {val_loss:.4f}")
+
     flog.close()
 
 
@@ -319,24 +304,25 @@ def train_model(tr_data, tr_model):
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
 
-training_data = AudioDataSet(os.path.join(script_dir, "audio", "voice_clips_wav"))
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0):
+training_data = AudioDataSet(files)
+val_data = AudioDataSet(val_files)
+test_data = AudioDataSet(test_files)
 print("Finished preparing training data.")
-t1, t2 = training_data.__getitem__(69)
-
-t_list = (torch.flatten(t1)).tolist()
 
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
 print("Finished preparing model.")
 
-train_model(training_data, model)
+train_model(training_data, val_data, model)
 torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
 #model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
 
 it = 0
-training_data.set_testing(True)
-test_dataloader = DataLoader(training_data, batch_size=1, shuffle=False)
+#testing_data = copy.deepcopy(training_data)
+#training_data.mode(2)
+test_dataloader = DataLoader(val_data, batch_size=1, shuffle=False)
 print("Initialized data loader.")
 
 zeros = [0] * SAMPLE_LEN

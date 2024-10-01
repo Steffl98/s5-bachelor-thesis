@@ -352,12 +352,54 @@ percentiles_val = [0.0]*10
 percentiles_count = [0]*10
 
 df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
+cum_target = 0
+cum_output = 0
+cum_input = 0
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
     output = model(input)
-    t_list = (torch.flatten(target)).tolist()
+    if (cum_target == 0):
+        cum_target = target
+    else:
+        cum_target = cum_target + target
+    if (cum_output == 0):
+        cum_output = output
+    else:
+        cum_output = cum_output + output
+    if (cum_input == 0):
+        cum_input = input
+    else:
+        cum_input = cum_input + input
+
     if (it > 200):
+        t_list = (torch.flatten(cum_target)).tolist()
+        audio_data_np = np.array(t_list)
+        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
+        plt.title("Histogram Targets")
+        plt.xlabel("Amplitude")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
+
+        t_list = (torch.flatten(cum_output)).tolist()
+        audio_data_np = np.array(t_list)
+        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
+        plt.title("Histogram Output")
+        plt.xlabel("Amplitude")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
+
+        t_list = (torch.flatten(cum_input)).tolist()
+        audio_data_np = np.array(t_list)
+        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
+        plt.title("Histogram Input")
+        plt.xlabel("Amplitude")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
+
         #fstat.close()
         fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
@@ -428,6 +470,7 @@ for input, target in test_dataloader:
     idx = idx + 1
     if (it < 31):
         print("Saving file #", it)
+        t_list = (torch.flatten(target)).tolist()
         with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
             for i in range(len(t_list)):
                 packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))

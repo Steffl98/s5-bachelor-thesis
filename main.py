@@ -123,7 +123,7 @@ class AudioDataSet(Dataset):
                 print("Loading wavs: ", percstr, "%")
             (self.wavs).append(read_wav(item))
         print("Done loading wavs.")
-        random.shuffle(wavs)
+        random.shuffle(self.wavs)
         self.wavs_test = self.wavs[:200]
         self.wavs = self.wavs[200:]
         self.transform = transform

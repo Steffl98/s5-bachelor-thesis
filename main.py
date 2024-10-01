@@ -229,7 +229,7 @@ def train_model(tr_data, val_data, tr_model):
     #train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     train_dataloader = DataLoader(tr_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
     print("Initialized data loader.")
-    val_dataloader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS,
+    val_dataloader = DataLoader(val_data, batch_size=1, shuffle=True, num_workers=NUM_WORKERS,
                                   pin_memory=True)
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)

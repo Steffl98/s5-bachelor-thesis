@@ -110,7 +110,9 @@ class AudioDataSet(Dataset):
     def __init__(self, dir, transform=None, target_transform=None):
         self.dir = dir
         self.files = list_files(dir)
+        self.test_mode = False
         self.wavs = []
+        self.wavs_test = []
         cntrr = 0
         for item in self.files:
             cntrr = cntrr + 1
@@ -121,14 +123,15 @@ class AudioDataSet(Dataset):
                 print("Loading wavs: ", percstr, "%")
             (self.wavs).append(read_wav(item))
         print("Done loading wavs.")
-        #print(len(self.files))
+        random.shuffle(wavs)
+        self.wavs_test = self.wavs[:200]
+        self.wavs = self.wavs[200:]
         self.transform = transform
         self.target_transform = target_transform
         self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
         self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
         self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
         self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
-        #self.SNR_fac = random.uniform(0.75, 1)#0.8#0.65
         self.SNR_fac = []
         self.noise_choice = []
         for _ in range(ITERATIONS):
@@ -136,17 +139,16 @@ class AudioDataSet(Dataset):
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
-        #path = self.files[idx % 852]
         offs = random.randint(0, 16000)
-        shift = random.uniform(0, 2) * np.pi
         fshift = pow(1.2, random.uniform(-1, 1))
-        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
-
+        if (self.test_mode == False):
+            label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+        else:
+            label_data = resample(self.wavs_test[idx % len(self.wavs_test)], fshift * 44.1 / 16.0, offs)
         noice = random.randint(1, 3)
         (self.noise_choice).append(noice)
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
-
         if (noice == 2):
             audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx])
         if (noice == 3):
@@ -157,6 +159,8 @@ class AudioDataSet(Dataset):
         return self.SNR_fac[x]
     def get_noise_choice(self, x):
         return self.noise_choice[x]
+    def set_testing(self, bewl):
+        self.test_mode = bewl
 
 
 class SequenceToSequenceRNN(nn.Module):
@@ -329,6 +333,7 @@ train_model(training_data, model)
 print("Done training model.")
 
 it = 0
+training_data.set_testing(True)
 test_dataloader = DataLoader(training_data, batch_size=1, shuffle=False)
 print("Initialized data loader.")
 
@@ -359,7 +364,7 @@ for input, target in test_dataloader:
     it = it + 1
     output = model(input)
     t_list = (torch.flatten(target)).tolist()
-    if (it > 300):
+    if (it > 200):
         #fstat.close()
         fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")

@@ -140,19 +140,6 @@ class AudioDataSet(Dataset):
         offs = random.randint(0, 16000)
         shift = random.uniform(0, 2) * np.pi
         fshift = pow(1.2, random.uniform(-1, 1))
-        freq = 100 * pow(2, random.uniform(0, 6.32))#100 Hz - 8 KHz (nyquist)
-        amp = random.uniform(0, 1) / 3.0
-
-        shift2 = random.uniform(0, 2) * np.pi
-        fshift2 = pow(1.2, random.uniform(-1, 1))
-        freq2 = 100 * pow(2, random.uniform(0, 6.32))  # 100 Hz - 8 KHz (nyquist)
-        amp2 = random.uniform(0, 1) / 3.0
-
-        shift3 = random.uniform(0, 2) * np.pi
-        fshift3 = pow(1.2, random.uniform(-1, 1))
-        freq3 = 100 * pow(2, random.uniform(0, 6.32))  # 100 Hz - 8 KHz (nyquist)
-        amp3 = random.uniform(0, 1) / 3.0
-
         label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
 
         noice = random.randint(1, 3)
@@ -366,7 +353,7 @@ plot6y = []
 percentiles_val = [0.0]*10
 percentiles_count = [0]*10
 
-df = pd.DataFrame(columns=["SNR fac", 'noise remaining', "Target dB", "Output dB"])
+df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
@@ -435,7 +422,8 @@ for input, target in test_dataloader:
     percentiles_count[prc] = percentiles_count[prc] + 1
     percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
 
-    pdrow=pd.DataFrame([[SNR_fac,noise_remaining,target_db,output_db]])#,columns=['SNR fac','noise remaining','Target dB','Output dB'])
+    pdrow=pd.DataFrame([[SNR_fac, SNR_db, noise_remaining,target_db,output_db,noice]],
+                       columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
     #df = df.append(pdrow, ignore_index=True)
     df = pd.concat([df, pdrow])
     #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")

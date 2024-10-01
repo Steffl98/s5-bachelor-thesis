@@ -18,6 +18,7 @@ from typing import Tuple, Optional, Literal
 import plotly.graph_objects as go
 import plotly.io as pio
 import matplotlib.pyplot as plt
+from scipy.fftpack import fft
 import pandas as pd
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -390,28 +391,37 @@ for input, target in test_dataloader:
     if (it > 200):
         t_list = (torch.flatten(cum_target)).tolist()
         audio_data_np = np.array(t_list)
-        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
-        plt.title("Histogram Targets")
-        plt.xlabel("Amplitude")
-        plt.ylabel("Frequency")
+        fft_result = fft(audio_data_np)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_result))
+        plt.title("Target Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
         plt.grid(True)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
 
         t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
-        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
-        plt.title("Histogram Output")
-        plt.xlabel("Amplitude")
-        plt.ylabel("Frequency")
+        fft_result = fft(audio_data_np)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_result))
+        plt.title("Output Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
         plt.grid(True)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
 
         t_list = (torch.flatten(cum_input)).tolist()
         audio_data_np = np.array(t_list)
-        plt.hist(audio_data_np, bins=100, color='blue')  # Adjust number of bins as needed
-        plt.title("Histogram Input")
-        plt.xlabel("Amplitude")
-        plt.ylabel("Frequency")
+        fft_result = fft(audio_data_np)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_result))
+        plt.title("Input Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
         plt.grid(True)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
 

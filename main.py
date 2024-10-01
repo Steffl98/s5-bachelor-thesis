@@ -330,6 +330,8 @@ model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
 print("Finished preparing model.")
 
 train_model(training_data, model)
+torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
+#model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
 
 it = 0

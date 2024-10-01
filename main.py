@@ -123,7 +123,7 @@ class AudioDataSet(Dataset):
         #self.wavs_test = []
         #self.wavs_val = []
         cntrr = 0
-        for item in files
+        for item in files:
             cntrr = cntrr + 1
             if (cntrr % 32 == 0):
                 percstr = str( (cntrr * 100.0) / len(self.files) )

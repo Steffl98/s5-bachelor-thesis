@@ -401,7 +401,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 4)
+        plt.xlim(1, 40)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
         plt.clf()
 
@@ -417,7 +417,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 4)
+        plt.xlim(1, 40)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
         plt.clf()
 
@@ -433,7 +433,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         #plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 4)
+        plt.xlim(1, 40)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
         plt.clf()
 

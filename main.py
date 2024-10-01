@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from typing import Tuple, Optional, Literal
 import plotly.graph_objects as go
 import plotly.io as pio
+import matplotlib.pyplot as plt
 import pandas as pd
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -308,6 +309,17 @@ def train_model(tr_data, val_data, tr_model):
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
+wav_lens = []
+all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
+for i in all_files:
+    size_in_secs = (os.path.getsize(i)-44)/(2.0*16000.0)
+    wav_lens.append(size_in_secs)
+
+plt.hist(data, bins=20, color='blue')
+plt.title("Histogram of Audio file lengths")
+plt.xlabel("Seconds")
+plt.ylabel("Frequency")
+plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)

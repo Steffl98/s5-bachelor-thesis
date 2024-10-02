@@ -20,6 +20,7 @@ import plotly.io as pio
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
 import pandas as pd
+import shutil
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -550,3 +551,9 @@ for input, target in test_dataloader:
             for i in range(len(t_list)):
                 packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
                 f.write(packed_data)
+
+zip_file_path = os.path.join(script_dir, "code", "output.zip")
+folder_path = os.path.join(script_dir, "code", "output")
+shutil.make_archive(zip_file_path, 'zip', folder_path)
+print("Zipped all outputs")
+print("Done!")

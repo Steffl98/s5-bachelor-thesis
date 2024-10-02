@@ -257,6 +257,9 @@ def train_model(tr_data, val_data, tr_model):
     loss_counter = 0.0
     cum_time = 0.0
     cum_err = 0.0
+    iterations_list = []
+    error_list = []
+    test_db_list = []
     flog = open(os.path.join(script_dir, "code", "output", "output_log.txt"), "w")
     tr_model.train()
     for batch_idx, (data, target) in enumerate(train_dataloader):
@@ -277,6 +280,8 @@ def train_model(tr_data, val_data, tr_model):
         if (batch_idx % 400 == 0):
             print("Error (log): ", cum_err / 400.0, "  ; took ", cum_time, " seconds...")
             flog.write(f"{cum_err / 400.0}\t{cum_time}\n")
+            iterations_list.append(batch_idx)
+            error_list.append(cum_err / 400.0)
             cum_time = 0
             cum_err = 0
             tr_model.eval()
@@ -296,14 +301,19 @@ def train_model(tr_data, val_data, tr_model):
                     val_loss = val_loss + noise_remaining
             val_loss /= 1000.0  # /= len(val_dataloader.dataset)
             print(f"Noise remaining in dB: {val_loss:.4f}")
+            test_db_list.append(val_loss)
             tr_model.train()
 
     tot_end_time = time.time()
     print("In Total took ", (tot_end_time - tot_start_time), " seconds...")
     flog.write(str(tot_end_time - tot_start_time))
-
-
     flog.close()
+    fig = go.Figure(data=go.Scatter(x=iterations_list, y=error_list, mode='markers'))
+    fig.update_layout(title="Training performance", xaxis_title="Batch no.", yaxis_title="Ln of training loss")
+    pio.write_image(fig, os.path.join(script_dir, "code", "output", "training_loss.png"), format="png")
+    fig = go.Figure(data=go.Scatter(x=iterations_list, y=test_db_list, mode='markers'))
+    fig.update_layout(title="Test performance", xaxis_title="Batch no.", yaxis_title="Noise remaining / dB")
+    pio.write_image(fig, os.path.join(script_dir, "code", "output", "test_performance.png"), format="png")
 
 
 
@@ -497,7 +507,7 @@ for input, target in test_dataloader:
 
 
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
-        quit()
+        break
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
     output_db = 10.0 * math.log10(loss_func((output), zeros).item())
     target_db = 10.0 * math.log10(loss_func((target), zeros).item())

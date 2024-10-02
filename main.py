@@ -294,12 +294,22 @@ def train_model(tr_data, val_data, tr_model):
                 for inputs, labels in val_dataloader:
                     inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
                     nsamples = nsamples + 1
-                    if (nsamples > 1000):
+                    if (nsamples > 100):
                         break
                     outputs = tr_model(inputs)
                     noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
-                    val_loss = val_loss + noise_remaining
-            val_loss /= 1000.0  # /= len(val_dataloader.dataset)
+                    SNR_fac = val_data.get_SNR_fac(nsamples - 1)
+                    fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
+                    noise_db = 0.0
+                    noice = val_data.get_noise_choice(nsamples - 1)
+                    if (noice == 1):
+                        noise_db = -15.9789
+                    if (noice == 2):
+                        noise_db = -7.77903
+                    if (noice == 3):
+                        noise_db = -15.6357
+                    val_loss = val_loss + (noise_remaining - noise_db - fac_noise_red)
+            val_loss /= 100.0  # /= len(val_dataloader.dataset)
             print(f"Noise remaining in dB: {val_loss:.4f}")
             test_db_list.append(val_loss)
             tr_model.train()
@@ -440,7 +450,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 40)
+        plt.xlim(20, 8000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
@@ -456,7 +466,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 40)
+        plt.xlim(20, 8000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 
@@ -472,7 +482,7 @@ for input, target in test_dataloader:
         plt.grid(True)
         #plt.xlim(0, 2000)
         plt.xscale('log', base=10)
-        plt.xlim(1, 40)
+        plt.xlim(20, 8000)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 

@@ -34,7 +34,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -441,7 +441,6 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_target)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
-        fft_result_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -459,7 +458,6 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
-        fft_result_output = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -477,7 +475,6 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_input)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
-        fft_result_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -492,9 +489,12 @@ for input, target in test_dataloader:
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 
+        t_list = (torch.flatten(cum_target - cum_output)).tolist()
+        audio_data_np = np.array(t_list)
+        fft_result = fft(audio_data_np)
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_result_target - fft_result_output))
+        plt.plot(freq_axis, np.abs(fft_result))
         plt.title("Target-Output Difference Audio Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")

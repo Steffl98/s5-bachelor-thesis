@@ -441,6 +441,7 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_target)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_result_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -451,13 +452,14 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 5500)
+        plt.ylim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
         t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_result_output = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -468,13 +470,14 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 5500)
+        plt.ylim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 
         t_list = (torch.flatten(cum_input)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_result_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -485,8 +488,22 @@ for input, target in test_dataloader:
         #plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 5500)
+        plt.ylim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
+        plt.clf()
+
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_result_target - fft_result_output))
+        plt.title("Target-Output Difference Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        # plt.xlim(0, 2000)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(0, 2000)
+        plt.savefig(os.path.join(script_dir, "code", "output", "difference_spectrum.png"))
         plt.clf()
 
         #fstat.close()

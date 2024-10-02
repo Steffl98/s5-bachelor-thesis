@@ -321,6 +321,7 @@ plt.title("Histogram of Audio file lengths")
 plt.xlabel("Seconds")
 plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
+plt.clf()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
@@ -352,6 +353,7 @@ plt.title("Histogram of Audio files avg. power")
 plt.xlabel("dB")
 plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "power_hist.png"))
+plt.clf()
 
 
 

@@ -310,7 +310,7 @@ def train_model(tr_data, val_data, tr_model):
                         noise_db = -15.6357
                     val_loss = val_loss + (noise_remaining - noise_db - fac_noise_red)
             val_loss /= 100.0  # /= len(val_dataloader.dataset)
-            print(f"Noise remaining in dB: {val_loss:.4f}")
+            print(f"Noise reduction in dB: {val_loss:.4f}")
             test_db_list.append(val_loss)
             tr_model.train()
 
@@ -322,7 +322,7 @@ def train_model(tr_data, val_data, tr_model):
     fig.update_layout(title="Training performance", xaxis_title="Batch no.", yaxis_title="Ln of training loss")
     pio.write_image(fig, os.path.join(script_dir, "code", "output", "training_loss.png"), format="png")
     fig = go.Figure(data=go.Scatter(x=iterations_list, y=test_db_list, mode='markers'))
-    fig.update_layout(title="Test performance", xaxis_title="Batch no.", yaxis_title="Noise remaining / dB")
+    fig.update_layout(title="Test performance", xaxis_title="Batch no.", yaxis_title="Noise reduction / dB")
     pio.write_image(fig, os.path.join(script_dir, "code", "output", "test_performance.png"), format="png")
 
 
@@ -451,6 +451,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
+        plt.ylim(0, 5500)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
@@ -467,6 +468,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
+        plt.ylim(0, 5500)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 
@@ -483,6 +485,7 @@ for input, target in test_dataloader:
         #plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
+        plt.ylim(0, 5500)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 
@@ -572,7 +575,7 @@ for input, target in test_dataloader:
                 packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
                 f.write(packed_data)
 
-zip_file_path = os.path.join(script_dir, "code", "output.zip")
+zip_file_path = os.path.join(script_dir, "code", "output")
 folder_path = os.path.join(script_dir, "code", "output")
 shutil.make_archive(zip_file_path, 'zip', folder_path)
 print("Zipped all outputs")

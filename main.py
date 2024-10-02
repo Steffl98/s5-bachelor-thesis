@@ -313,7 +313,7 @@ def train_model(tr_data, val_data, tr_model):
 wav_lens = []
 all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
 for i in all_files:
-    size_in_secs = (os.path.getsize(i)-44)/(2.0*16000.0)
+    size_in_secs = (os.path.getsize(i)-44)/(2.0*44100.0)
     wav_lens.append(size_in_secs)
 
 plt.hist(wav_lens, bins=20, color='blue')
@@ -327,6 +327,32 @@ training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
 test_data = AudioDataSet(test_files)
 print("Finished preparing training data.")
+
+
+
+power_list = []
+
+zeros = [0] * SAMPLE_LEN
+zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
+zeros = zeros.to(device, non_blocking=True)
+iteration_dataloader = DataLoader(training_data, batch_size=1, shuffle=False)
+loss_func = nn.MSELoss()
+indx = 0
+for input, target in iteration_dataloader:
+    indx = indx + 1
+    if (indx > len(files)):
+        break
+    target = target.to(device, non_blocking=True)
+    power_db = 10.0 * math.log10(loss_func(target, zeros).item())
+    power_list.append(power_db)
+
+
+plt.hist(power_list, bins=20, color='blue')
+plt.title("Histogram of Audio files avg. power")
+plt.xlabel("dB")
+plt.ylabel("Frequency")
+plt.savefig(os.path.join(script_dir, "code", "output", "power_hist.png"))
+
 
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)

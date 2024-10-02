@@ -316,7 +316,7 @@ for i in all_files:
     size_in_secs = (os.path.getsize(i)-44)/(2.0*44100.0)
     wav_lens.append(size_in_secs)
 
-plt.hist(wav_lens, bins=20, color='blue')
+plt.hist(wav_lens, bins=120, color='blue')
 plt.title("Histogram of Audio file lengths")
 plt.xlabel("Seconds")
 plt.ylabel("Frequency")
@@ -348,7 +348,7 @@ for input, target in iteration_dataloader:
     power_list.append(power_db)
 
 
-plt.hist(power_list, bins=20, color='blue')
+plt.hist(power_list, bins=88, color='blue')
 plt.title("Histogram of Audio files avg. power")
 plt.xlabel("dB")
 plt.ylabel("Frequency")
@@ -430,7 +430,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(1, 40)
-        plt.savefig(os.path.join(script_dir, "code", "output", "target_hist.png"))
+        plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
         t_list = (torch.flatten(cum_output)).tolist()
@@ -446,7 +446,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(1, 40)
-        plt.savefig(os.path.join(script_dir, "code", "output", "output_hist.png"))
+        plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 
         t_list = (torch.flatten(cum_input)).tolist()
@@ -462,7 +462,7 @@ for input, target in test_dataloader:
         #plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(1, 40)
-        plt.savefig(os.path.join(script_dir, "code", "output", "input_hist.png"))
+        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 
         #fstat.close()

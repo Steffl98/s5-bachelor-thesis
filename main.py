@@ -34,7 +34,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*12#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -441,6 +441,7 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_target)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -458,6 +459,7 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_output = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -475,6 +477,7 @@ for input, target in test_dataloader:
         t_list = (torch.flatten(cum_input)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
+        fft_input = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_result))
@@ -505,6 +508,36 @@ for input, target in test_dataloader:
         plt.ylim(0, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "difference_spectrum.png"))
         plt.clf()
+
+        fft_result = fft_input - fft_output
+        plt.plot(freq_axis, fft_result)
+        plt.title("Transfer Function")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(-2000, 2000)
+        plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
+        plt.clf()
+
+
+
+        fft_result = fft_target - fft_output
+        plt.plot(freq_axis, fft_result)
+        plt.title("Difference Function")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(-2000, 2000)
+        plt.savefig(os.path.join(script_dir, "code", "output", "difference_function.png"))
+        plt.clf()
+
+
+
+
 
         #fstat.close()
         fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))

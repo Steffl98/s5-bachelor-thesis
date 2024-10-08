@@ -34,7 +34,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*12#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -60,7 +60,7 @@ def data_to_type(data, data_type, byte_order='little'):
 
 def read_wav(filename): # max len after resampling = 982988
     values = []
-    with open(filename, 'rb') as f:
+    with open(filename, 'tb') as f:
         data = f.read(44)
         while True:
             data = f.read(2)  # Read 2 bytes for 16-bit integers
@@ -151,7 +151,7 @@ class AudioDataSet(Dataset):
         for _ in range(ITERATIONS):
             (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
-            (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
+            (self.fshift).append(pow(1.2, random.uniform(-1, 1))
             (self.offs).append(random.randint(0, 16000))
     def __len__(self):
         return ITERATIONS
@@ -242,7 +242,7 @@ def train_model(tr_data, val_data, tr_model):
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
 
-    loss_func = nn.MSELoss()
+    loss_func = n.MSELoss()
     print("Initialized loss func")
 
 
@@ -417,6 +417,9 @@ df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB'
 cum_target_flag = 0
 cum_output_flag = 0
 cum_input_flag = 0
+fft_target_cum = np.array([0] * SAMPLE_LEN
+fft_input_cum = np.array([0] * SAMPLE_LEN
+fft_output_cum = np.array([0] * SAMPLE_LEN
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1
@@ -437,14 +440,17 @@ for input, target in test_dataloader:
     else:
         cum_input = cum_input + input
 
+    t_list = (torch.flatten(target)).tolist()
+    audio_data_np = np.array(t_list)
+    fft_result = fft(audio_data_np)
+    fft_target_cum = fft_target_cum + np.abs(fft_result)
+
     if (it > 200):
-        t_list = (torch.flatten(cum_target)).tolist()
+        t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
-        fft_target = fft_result
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_result))
+        plt.plot(freq_axis, np.abs(fft_target_cum))
         plt.title("Target Audio Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")

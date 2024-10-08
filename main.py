@@ -60,7 +60,7 @@ def data_to_type(data, data_type, byte_order='little'):
 
 def read_wav(filename): # max len after resampling = 982988
     values = []
-    with open(filename, 'tb') as f:
+    with open(filename, 'rb') as f:
         data = f.read(44)
         while True:
             data = f.read(2)  # Read 2 bytes for 16-bit integers
@@ -151,7 +151,7 @@ class AudioDataSet(Dataset):
         for _ in range(ITERATIONS):
             (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
-            (self.fshift).append(pow(1.2, random.uniform(-1, 1))
+            (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
             (self.offs).append(random.randint(0, 16000))
     def __len__(self):
         return ITERATIONS
@@ -242,7 +242,7 @@ def train_model(tr_data, val_data, tr_model):
 
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
 
-    loss_func = n.MSELoss()
+    loss_func = nn.MSELoss()
     print("Initialized loss func")
 
 
@@ -417,9 +417,9 @@ df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB'
 cum_target_flag = 0
 cum_output_flag = 0
 cum_input_flag = 0
-fft_target_cum = np.array([0] * SAMPLE_LEN
-fft_input_cum = np.array([0] * SAMPLE_LEN
-fft_output_cum = np.array([0] * SAMPLE_LEN
+fft_target_cum = np.array([0] * SAMPLE_LEN)
+fft_input_cum = np.array([0] * SAMPLE_LEN)
+fft_output_cum = np.array([0] * SAMPLE_LEN)
 for input, target in test_dataloader:
     input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
     it = it + 1

@@ -462,7 +462,7 @@ for input, target in test_dataloader:
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
-        t_list = (torch.flatten(cum_output)).tolist()
+        """t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
         fft_output = fft_result
@@ -539,7 +539,7 @@ for input, target in test_dataloader:
         plt.xlim(20, 8000)
         plt.ylim(-2000, 2000)
         plt.savefig(os.path.join(script_dir, "code", "output", "difference_function.png"))
-        plt.clf()
+        plt.clf()"""
 
 
 

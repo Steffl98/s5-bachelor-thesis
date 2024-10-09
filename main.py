@@ -445,6 +445,16 @@ for input, target in test_dataloader:
     fft_result = fft(audio_data_np)
     fft_target_cum = fft_target_cum + np.abs(fft_result)
 
+    t_list = (torch.flatten(output)).tolist()
+    audio_data_np = np.array(t_list)
+    fft_result = fft(audio_data_np)
+    fft_output_cum = fft_output_cum + np.abs(fft_result)
+
+    t_list = (torch.flatten(input)).tolist()
+    audio_data_np = np.array(t_list)
+    fft_result = fft(audio_data_np)
+    fft_input_cum = fft_input_cum + np.abs(fft_result)
+
     if (it > 200):
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
@@ -460,6 +470,38 @@ for input, target in test_dataloader:
         plt.xlim(20, 8000)
         plt.ylim(0, 4800)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
+        plt.clf()
+
+        t_list = (torch.flatten(input)).tolist()
+        audio_data_np = np.array(t_list)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_target_cum))
+        plt.title("Input Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        plt.xlim(0, 2000)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(0, 4800)
+        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
+        plt.clf()
+
+        t_list = (torch.flatten(output)).tolist()
+        audio_data_np = np.array(t_list)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_target_cum))
+        plt.title("Output Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        plt.xlim(0, 2000)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(0, 4800)
+        plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 
         """t_list = (torch.flatten(cum_output)).tolist()

@@ -458,7 +458,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 2000)
+        plt.ylim(0, 4800)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 

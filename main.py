@@ -476,7 +476,7 @@ for input, target in test_dataloader:
         audio_data_np = np.array(t_list)
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_target_cum))
+        plt.plot(freq_axis, np.abs(fft_input_cum))
         plt.title("Input Audio Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")
@@ -492,7 +492,7 @@ for input, target in test_dataloader:
         audio_data_np = np.array(t_list)
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_target_cum))
+        plt.plot(freq_axis, np.abs(fft_output_cum))
         plt.title("Output Audio Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude")

@@ -34,7 +34,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*7#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -455,7 +455,7 @@ for input, target in test_dataloader:
     fft_result = fft(audio_data_np)
     fft_input_cum = fft_input_cum + np.abs(fft_result)
 
-    if (it > 200):
+    if (it > 2000):
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
         sampling_rate = 16000.0
@@ -508,7 +508,7 @@ for input, target in test_dataloader:
         audio_data_np = np.array(t_list)
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, math.log10(fft_output_cum / fft_input_cum))
+        plt.plot(freq_axis, np.log10(fft_output_cum / fft_input_cum))
         plt.title("Transfer function Spectrum")
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Magnitude Log10")

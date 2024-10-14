@@ -229,7 +229,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
         self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
-        self.BN = nn.BatchNorm1d(dim)
+        self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
 

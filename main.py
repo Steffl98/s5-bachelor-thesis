@@ -367,7 +367,7 @@ def create_dataset_spectrogram():
     audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
     freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-    plt.plot(freq_axis, np.abs(fft_result))
+    plt.plot(freq_axis, np.abs(fft_cum))
     plt.title("Unadulterated Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude")

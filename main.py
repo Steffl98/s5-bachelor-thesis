@@ -375,7 +375,7 @@ def create_dataset_spectrogram():
     plt.xlim(0, 2000)
     plt.xscale('log', base=10)
     plt.xlim(20, 8000)
-    plt.ylim(0, 48000)
+    plt.ylim(0, 500)
     plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
     plt.clf()
 

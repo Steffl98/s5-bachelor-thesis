@@ -360,14 +360,14 @@ def create_dataset_spectrogram():
         wav = read_wav(item)
         label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
-        audio_data_np = np.array(label_data) / samplecnt#t_list)
+        audio_data_np = np.array(label_data) * (16000.00 / double(samplecnt))#t_list)
         fft_result = fft(audio_data_np)
         fft_cum = fft_cum + np.abs(fft_result)
 
     audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
     freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-    plt.plot(freq_axis, np.abs(fft_cum))
+    plt.plot(freq_axis, np.abs(fft_result))
     plt.title("Unadulterated Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude")

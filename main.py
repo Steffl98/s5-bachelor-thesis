@@ -85,6 +85,25 @@ def resample(data, ratio, offset=0):
         xyz.append(int(0))
     return xyz
 
+
+def resample2(data, ratio, leng):
+    #offset = 0
+    xyz = []
+    old_num = len(data)
+    new_num = int(old_num / ratio)
+    app_cnt = 0
+    for i in range(new_num):
+        indecks = int(i * ratio)
+        if (i >= leng): # C U L L
+            break
+        if (indecks < old_num):
+            xyz.append(data[indecks])
+            app_cnt = app_cnt + 1
+    while (len(xyz) < leng): # P A D
+        xyz.append(int(0))
+    return xyz, app_cnt
+
+
 def add_noise(data, noise, fac):
     samples = len(data)
     noize = []
@@ -339,9 +358,9 @@ def create_dataset_spectrogram():
                 percstr = percstr[0:4]
             print("Loading wavs: ", percstr, "%")
         wav = read_wav(item)
-        label_data = resample(wav, 44.1 / 16.0)
+        label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
-        audio_data_np = np.array(label_data)#t_list)
+        audio_data_np = np.array(label_data) / samplecnt#t_list)
         fft_result = fft(audio_data_np)
         fft_cum = fft_cum + np.abs(fft_result)
 

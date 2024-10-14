@@ -360,7 +360,7 @@ def create_dataset_spectrogram():
         wav = read_wav(item)
         label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
-        audio_data_np = np.array(label_data) * (16000.00 / double(samplecnt))#t_list)
+        audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
         fft_result = fft(audio_data_np)
         fft_cum = fft_cum + np.abs(fft_result)
 

@@ -364,7 +364,7 @@ def create_dataset_spectrogram():
         fft_result = fft(audio_data_np)
         fft_cum = fft_cum + np.abs(fft_result)
 
-    audio_data_np = np.array(wav)
+    audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
     freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
     plt.plot(freq_axis, np.abs(fft_cum))

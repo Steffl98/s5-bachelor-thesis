@@ -34,7 +34,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*7#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*12#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -395,8 +395,8 @@ plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
 
-create_dataset_spectrogram()
-quit()
+#create_dataset_spectrogram()
+#quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)

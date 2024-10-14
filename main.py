@@ -349,7 +349,7 @@ def train_model(tr_data, val_data, tr_model):
 def create_dataset_spectrogram():
     files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
     cntrr = 0
-    fft_cum = np.array([0] * SAMPLE_LEN)
+    fft_cum = np.array([0] * 50000)
     for item in files:
         cntrr = cntrr + 1
         if (cntrr % 32 == 0):

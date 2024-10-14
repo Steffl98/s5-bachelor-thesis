@@ -327,6 +327,38 @@ def train_model(tr_data, val_data, tr_model):
 
 
 
+def create_dataset_spectrogram():
+    files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
+    cntrr = 0
+    fft_cum = np.array([0] * SAMPLE_LEN)
+    for item in files:
+        cntrr = cntrr + 1
+        if (cntrr % 32 == 0):
+            percstr = str((cntrr * 100.0) / len(files))
+            if (len(percstr) > 4):
+                percstr = percstr[0:4]
+            print("Loading wavs: ", percstr, "%")
+        wav = read_wav(item)
+        label_data = resample(wav, 44.1 / 16.0)
+        #t_list = (torch.flatten(label_data)).tolist()
+        audio_data_np = np.array(label_data)#t_list)
+        fft_result = fft(audio_data_np)
+        fft_cum = fft_cum + np.abs(fft_result)
+
+    audio_data_np = np.array(wav)
+    sampling_rate = 16000.0
+    freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+    plt.plot(freq_axis, np.abs(fft_cum))
+    plt.title("Unadulterated Data Set Audio Spectrum")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Magnitude")
+    plt.grid(True)
+    plt.xlim(0, 2000)
+    plt.xscale('log', base=10)
+    plt.xlim(20, 8000)
+    plt.ylim(0, 48000)
+    plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
+    plt.clf()
 
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
@@ -343,6 +375,9 @@ plt.xlabel("Seconds")
 plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
+
+create_dataset_spectrogram()
+quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
@@ -468,7 +503,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 4800)
+        plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
 
@@ -484,7 +519,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 14000)
+        plt.ylim(0, 140000)
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 
@@ -500,7 +535,7 @@ for input, target in test_dataloader:
         plt.xlim(0, 2000)
         plt.xscale('log', base=10)
         plt.xlim(20, 8000)
-        plt.ylim(0, 4800)
+        plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
 

@@ -369,21 +369,22 @@ def create_dataset_spectrogram():
     audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
     freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-    plt.plot(freq_axis, np.abs(fft_cum))
-    plt.title("Unadulterated Data Set Audio Spectrum")
+    plt.plot(freq_axis, np.abs(fft_cum), color='blue', label='Before augmentations')
+    plt.title("Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude")
     plt.grid(True)
-    plt.xlim(0, 2000)
+    #plt.xlim(0, 2000)
     plt.xscale('log', base=10)
     plt.xlim(20, 8000)
     plt.ylim(0, 20000)
-    plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
-    plt.clf()
+    #plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
+    #plt.clf()
+#    plt.legend()
 
-    with open( os.path.join(script_dir, "code", "output", "freq_axis.txt") , "w") as f:
+    """with open( os.path.join(script_dir, "code", "output", "freq_axis.txt") , "w") as f:
         for freq in freq_axis:
-            f.write(str(freq) + "\n")
+            f.write(str(freq) + "\n")"""
 
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
@@ -402,7 +403,7 @@ plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
 
 create_dataset_spectrogram()
-quit()
+#quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
@@ -516,6 +517,25 @@ for input, target in test_dataloader:
     fft_input_cum = fft_input_cum + np.abs(fft_result)
 
     if (it > 2000):
+
+
+        t_list = (torch.flatten(input)).tolist()
+        audio_data_np = np.array(t_list)
+        sampling_rate = 16000.0
+        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+        plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
+        #plt.title("Input Audio Spectrum")
+        #plt.xlabel("Frequency (Hz)")
+        #plt.ylabel("Magnitude")
+        #plt.grid(True)
+        #plt.xlim(0, 2000)
+        #plt.xscale('log', base=10)
+        #plt.xlim(20, 8000)
+        #plt.ylim(0, 140000)
+        plt.legend()
+        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
+        plt.clf()
+
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
         sampling_rate = 16000.0
@@ -530,22 +550,6 @@ for input, target in test_dataloader:
         plt.xlim(20, 8000)
         plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
-        plt.clf()
-
-        t_list = (torch.flatten(input)).tolist()
-        audio_data_np = np.array(t_list)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_input_cum))
-        plt.title("Input Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 140000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
 
         t_list = (torch.flatten(output)).tolist()

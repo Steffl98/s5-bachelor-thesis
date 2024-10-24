@@ -381,6 +381,10 @@ def create_dataset_spectrogram():
     plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
     plt.clf()
 
+    with open(script_dir, "code", "output", "freq_axis.txt", "w") as f:
+        for freq in freq_axis:
+            f.write(str(freq) + "\n")
+
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 

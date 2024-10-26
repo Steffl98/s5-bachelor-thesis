@@ -36,9 +36,12 @@ with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"),
 # Convert the list to a NumPy array
 data = np.array(data, dtype=float)  # Adjust the dtype if necessary
 
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+
 # Extract the original arrays
-freq_axis = data[:, 0]
-yax = data[:, 1]
+freq_axis = sorted_data[:, 0]
+yax = sorted_data[:, 1]
 
 
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')

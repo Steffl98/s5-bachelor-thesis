@@ -75,7 +75,7 @@ sorted_data = data[sort_indices]
 xax = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 
-spl = np.CubicSpline(xax, yax)
+spl = scipy.interpolate.CubicSpline(xax, yax)
 xnew = np.linspace(0.0, 1.0, num=1001)
 plt.plot(xnew, spl(xnew))
 plt.savefig(os.path.join(script_dir, "code", "output", "aaa.png"))

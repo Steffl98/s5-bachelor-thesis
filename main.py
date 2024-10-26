@@ -409,7 +409,7 @@ plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
 
 create_dataset_spectrogram()
-quit()
+#quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
@@ -689,6 +689,11 @@ for input, target in test_dataloader:
         fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
+        data = np.vstack((plot3x, plot3y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
         fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")

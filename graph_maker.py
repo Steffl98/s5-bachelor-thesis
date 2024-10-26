@@ -14,6 +14,7 @@ import pandas as pd
 import shutil
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 import csv
+from scipy.interpolate import interp1d
 
 
 
@@ -39,10 +40,8 @@ data = np.array(data, dtype=float)  # Adjust the dtype if necessary
 sort_indices = np.argsort(data[:, 0])
 sorted_data = data[sort_indices]
 
-# Extract the original arrays
 freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1]
-
 
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')
 plt.title("Data Set Audio Spectrum")
@@ -55,3 +54,10 @@ plt.xlim(20, 8000)
 plt.ylim(0, 20000)
 plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
 plt.clf()
+
+
+
+
+spl = CubicSpline([1, 2, 3, 4, 5, 6], [1, 4, 8, 16, 25, 36])
+xnew = np.linspace(0, 10, num=1001)
+plt.plot(xnew, spl(xnew))

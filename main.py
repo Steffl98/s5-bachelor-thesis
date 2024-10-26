@@ -383,6 +383,7 @@ def create_dataset_spectrogram():
     #plt.clf()
 #    plt.legend()
     data = np.vstack((freq_axis, np.abs(fft_cum)))
+    data = data.T
     with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"), 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerows(data)

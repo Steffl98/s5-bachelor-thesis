@@ -23,6 +23,7 @@ import pandas as pd
 import shutil
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+import csv
 
 script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
 try:
@@ -381,6 +382,10 @@ def create_dataset_spectrogram():
     #plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
     #plt.clf()
 #    plt.legend()
+    data = np.vstack((freq_axis, np.abs(fft_cum)))
+    with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(data)
 
     """with open( os.path.join(script_dir, "code", "output", "freq_axis.txt") , "w") as f:
         for freq in freq_axis:
@@ -403,7 +408,7 @@ plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
 
 create_dataset_spectrogram()
-#quit()
+quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)

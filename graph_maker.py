@@ -58,6 +58,23 @@ plt.clf()
 
 
 
-spl = CubicSpline([1, 2, 3, 4, 5, 6], [1, 4, 8, 16, 25, 36])
-xnew = np.linspace(0, 10, num=1001)
+
+
+
+
+with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+
+# Convert the list to a NumPy array
+data = np.array(data, dtype=float)  # Adjust the dtype if necessary
+
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+
+xax = sorted_data[:, 0]
+yax = sorted_data[:, 1]
+
+spl = CubicSpline(xax, yax)
+xnew = np.linspace(0.0, 1.0, num=1001)
 plt.plot(xnew, spl(xnew))

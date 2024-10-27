@@ -769,12 +769,12 @@ for input, target in test_dataloader:
     noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
     output_db = 10.0 * math.log10(loss_func((output), zeros).item())
     target_db = 10.0 * math.log10(loss_func((target), zeros).item())
-    SNR_fac = training_data.get_SNR_fac(idx)
+    SNR_fac = test_dataloader.get_SNR_fac(idx)
     SNR_db = 10.0 * math.log10(SNR_fac / (1.0 - SNR_fac))
 
     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
     noise_db = 0.0
-    noice = training_data.get_noise_choice(idx)
+    noice = test_dataloader.get_noise_choice(idx)
     if (noice == 1):
         noise_db = -15.9789
         plot4x.append(SNR_db)

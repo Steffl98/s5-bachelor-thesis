@@ -265,6 +265,7 @@ def train_model(tr_data, val_data, tr_model):
     #test_dataloader = DataLoader(tr_data, batch_size=64, shuffle=True)
 
     loss_func = nn.MSELoss()
+    L1_loss_func = nn.L1Loss()
     print("Initialized loss func")
 
 
@@ -277,11 +278,15 @@ def train_model(tr_data, val_data, tr_model):
     num_iterations = len(train_dataloader)
     print("Num iterations: ", num_iterations)
     loss_counter = 0.0
+    l1_loss_counter = 0.0
     cum_time = 0.0
     cum_err = 0.0
+    cum_l1_err = 0.0
     iterations_list = []
     error_list = []
+    l1_error_list = []
     test_db_list = []
+    test_l1_db_list = []
     flog = open(os.path.join(script_dir, "code", "output", "output_log.txt"), "w")
     tr_model.train()
     for batch_idx, (data, target) in enumerate(train_dataloader):
@@ -292,22 +297,29 @@ def train_model(tr_data, val_data, tr_model):
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
         output = tr_model(data)
         loss = loss_func(output, target)
+        with torch.no_grad():
+            l1_loss = L1_loss_func(output, target)
         loss_counter = loss_counter + loss.item()
+        l1_loss_counter = l1_loss_counter + l1_loss.item()
         loss.backward()
         optimizer.step()
         #scheduler.step()
         end_time = time.time()
         cum_time = cum_time + (end_time - start_time)
         cum_err = cum_err + math.log(loss.item())
+        cum_l1_err = cum_l1_err + math.log(l1_loss.item())
         if (batch_idx % 400 == 0):
-            print("Error (log): ", cum_err / 400.0, "  ; took ", cum_time, " seconds...")
+            print("Error (log): ", cum_err / 400.0, "; L1 Loss: ", cum_l1_err / 400.0, "  ; took ", cum_time, " seconds...")
             flog.write(f"{cum_err / 400.0}\t{cum_time}\n")
             iterations_list.append(batch_idx)
             error_list.append(cum_err / 400.0)
+            l1_error_list.append(cum_l1_err / 400.0)
             cum_time = 0
             cum_err = 0
+            cum_l1_err = 0
             tr_model.eval()
             val_loss = 0.0
+            val_l1_loss = 0.0
             nsamples = 0
             zeros = [0] * SAMPLE_LEN
             zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
@@ -320,6 +332,7 @@ def train_model(tr_data, val_data, tr_model):
                         break
                     outputs = tr_model(inputs)
                     noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
+                    l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())
                     SNR_fac = val_data.get_SNR_fac(nsamples - 1)
                     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
                     noise_db = 0.0
@@ -331,9 +344,12 @@ def train_model(tr_data, val_data, tr_model):
                     if (noice == 3):
                         noise_db = -15.6357
                     val_loss = val_loss + (noise_remaining - noise_db - fac_noise_red)
+                    val_l1_loss = val_l1_loss + (l1_noise_remaining - noise_db - fac_noise_red)
             val_loss /= 100.0  # /= len(val_dataloader.dataset)
-            print(f"Noise reduction in dB: {val_loss:.4f}")
+            val_l1_loss /= 100.0
+            print(f"Noise reduction in dB: {val_loss:.4f}", f"L1 Noise reduction in dB: {val_l1_loss:.4f}")
             test_db_list.append(val_loss)
+            test_l1_db_list.append(val_l1_loss)
             tr_model.train()
 
     tot_end_time = time.time()
@@ -489,336 +505,337 @@ cum_input_flag = 0
 fft_target_cum = np.array([0] * SAMPLE_LEN)
 fft_input_cum = np.array([0] * SAMPLE_LEN)
 fft_output_cum = np.array([0] * SAMPLE_LEN)
-for input, target in test_dataloader:
-    input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
-    it = it + 1
-    output = model(input)
-    if (cum_target_flag == 0):
-        cum_target_flag = 1
-        cum_target = target
-    else:
-        cum_target = cum_target + target
-    if (cum_output_flag == 0):
-        cum_output_flag = 1
-        cum_output = output
-    else:
-        cum_output = cum_output + output
-    if (cum_input_flag == 0):
-        cum_input_flag = 1
-        cum_input = input
-    else:
-        cum_input = cum_input + input
-
-    t_list = (torch.flatten(target)).tolist()
-    audio_data_np = np.array(t_list)
-    fft_result = fft(audio_data_np)
-    fft_target_cum = fft_target_cum + np.abs(fft_result)
-
-    t_list = (torch.flatten(output)).tolist()
-    audio_data_np = np.array(t_list)
-    fft_result = fft(audio_data_np)
-    fft_output_cum = fft_output_cum + np.abs(fft_result)
-
-    t_list = (torch.flatten(input)).tolist()
-    audio_data_np = np.array(t_list)
-    fft_result = fft(audio_data_np)
-    fft_input_cum = fft_input_cum + np.abs(fft_result)
-
-    if (it > 2000):
-
-
-        t_list = (torch.flatten(input)).tolist()
-        audio_data_np = np.array(t_list)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
-        plt.title("Input Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 140000)
-        plt.legend()
-        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
-        plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_input_cum)))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
+with torch.no_grad():
+    for input, target in test_dataloader:
+        input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
+        it = it + 1
+        output = model(input)
+        if (cum_target_flag == 0):
+            cum_target_flag = 1
+            cum_target = target
+        else:
+            cum_target = cum_target + target
+        if (cum_output_flag == 0):
+            cum_output_flag = 1
+            cum_output = output
+        else:
+            cum_output = cum_output + output
+        if (cum_input_flag == 0):
+            cum_input_flag = 1
+            cum_input = input
+        else:
+            cum_input = cum_input + input
 
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_target_cum))
-        plt.title("Target Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 48000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
-        plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_target_cum)))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
+        fft_result = fft(audio_data_np)
+        fft_target_cum = fft_target_cum + np.abs(fft_result)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_output_cum))
-        plt.title("Output Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 48000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
-        plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_output_cum)))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        t_list = (torch.flatten(output)).tolist()
-        audio_data_np = np.array(t_list)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.log10(fft_output_cum / fft_input_cum))
-        plt.title("Transfer function Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude Log10")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(-3, 3)
-        plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
-        plt.clf()
-        data = np.vstack((freq_axis, np.log10(fft_output_cum / fft_input_cum)))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "transfer_function.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        """t_list = (torch.flatten(cum_output)).tolist()
-        audio_data_np = np.array(t_list)
         fft_result = fft(audio_data_np)
-        fft_output = fft_result
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_result))
-        plt.title("Output Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 2000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
-        plt.clf()
+        fft_output_cum = fft_output_cum + np.abs(fft_result)
 
-        t_list = (torch.flatten(cum_input)).tolist()
-        audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
-        fft_input = fft_result
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_result))
-        plt.title("Input Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        #plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 2000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
-        plt.clf()
-
-        t_list = (torch.flatten(cum_target - cum_output)).tolist()
-        audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
-        sampling_rate = 16000.0
-        freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-        plt.plot(freq_axis, np.abs(fft_result))
-        plt.title("Target-Output Difference Audio Spectrum")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        # plt.xlim(0, 2000)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(0, 2000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "difference_spectrum.png"))
-        plt.clf()
-
-        fft_result = fft_input - fft_output
-        plt.plot(freq_axis, fft_result)
-        plt.title("Transfer Function")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(-2000, 2000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
-        plt.clf()
-
-
-
-        fft_result = fft_target - fft_output
-        plt.plot(freq_axis, fft_result)
-        plt.title("Difference Function")
-        plt.xlabel("Frequency (Hz)")
-        plt.ylabel("Magnitude")
-        plt.grid(True)
-        plt.xscale('log', base=10)
-        plt.xlim(20, 8000)
-        plt.ylim(-2000, 2000)
-        plt.savefig(os.path.join(script_dir, "code", "output", "difference_function.png"))
-        plt.clf()"""
-
-
-
-
-
-        #fstat.close()
-        fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
-        fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
-        data = np.vstack((plot1x, plot1y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
-        fig.update_layout(title="Scatter plot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
-        data = np.vstack((plot2x, plot2y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        for i in range(10):
-            plot3x.append((i/10.0) + 0.05)
-            plot3y.append(percentiles_val[i] / percentiles_count[i])
-
-        fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
-        fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
-        data = np.vstack((plot3x, plot3y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'w', newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
-        fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")
-        data = np.vstack((plot4x, plot4y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
-        fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")
-        data = np.vstack((plot5x, plot5y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-        fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
-        fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-        pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
-        data = np.vstack((plot6x, plot6y))
-        data = data.T
-        with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'w',
-                  newline='') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerows(data)
-
-
-        df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
-        break
-    noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
-    output_db = 10.0 * math.log10(loss_func((output), zeros).item())
-    target_db = 10.0 * math.log10(loss_func((target), zeros).item())
-    SNR_fac = val_data.get_SNR_fac(idx)
-    SNR_db = 10.0 * math.log10(SNR_fac / (1.0 - SNR_fac))
-
-    fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
-    noise_db = 0.0
-    noice = val_data.get_noise_choice(idx)
-    if (noice == 1):
-        noise_db = -15.9789
-        plot4x.append(SNR_db)
-        plot4y.append(noise_remaining - noise_db - fac_noise_red)
-    if (noice == 2):
-        noise_db = -7.77903
-        plot5x.append(SNR_db)
-        plot5y.append(noise_remaining - noise_db - fac_noise_red)
-    if (noice == 3):
-        noise_db = -15.6357
-        plot6x.append(SNR_db)
-        plot6y.append(noise_remaining - noise_db - fac_noise_red)
-    plot1x.append(SNR_fac)
-    plot1y.append(noise_remaining - noise_db - fac_noise_red)
-    plot2x.append(SNR_db)
-    plot2y.append(noise_remaining - noise_db - fac_noise_red)
-
-    prc = math.floor(SNR_fac * 9.999999)  # tmp is int and ranges from 0 to 9
-    percentiles_count[prc] = percentiles_count[prc] + 1
-    percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
-
-    pdrow=pd.DataFrame([[SNR_fac, SNR_db, noise_remaining,target_db,output_db,noice]],
-                       columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
-    #df = df.append(pdrow, ignore_index=True)
-    df = pd.concat([df, pdrow])
-    #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")
-    idx = idx + 1
-    if (it < 31):
-        print("Saving file #", it)
-        t_list = (torch.flatten(target)).tolist()
-        with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
-            for i in range(len(t_list)):
-                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-                f.write(packed_data)
-        t_list = (torch.flatten(output)).tolist()
-        with open(os.path.join(script_dir, "code", "output", f"{it}_out.rawww"), 'wb') as f:
-            for i in range(len(t_list)):
-                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
-                f.write(packed_data)
         t_list = (torch.flatten(input)).tolist()
-        with open(os.path.join(script_dir, "code", "output", f"{it}_in.rawww"), 'wb') as f:
-            for i in range(len(t_list)):
-                packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
-                f.write(packed_data)
+        audio_data_np = np.array(t_list)
+        fft_result = fft(audio_data_np)
+        fft_input_cum = fft_input_cum + np.abs(fft_result)
+
+        if (it > 2000):
+
+
+            t_list = (torch.flatten(input)).tolist()
+            audio_data_np = np.array(t_list)
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
+            plt.title("Input Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 140000)
+            plt.legend()
+            plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
+            plt.clf()
+            data = np.vstack((freq_axis, np.abs(fft_input_cum)))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            t_list = (torch.flatten(target)).tolist()
+            audio_data_np = np.array(t_list)
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_target_cum))
+            plt.title("Target Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 48000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
+            plt.clf()
+            data = np.vstack((freq_axis, np.abs(fft_target_cum)))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            t_list = (torch.flatten(output)).tolist()
+            audio_data_np = np.array(t_list)
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_output_cum))
+            plt.title("Output Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 48000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
+            plt.clf()
+            data = np.vstack((freq_axis, np.abs(fft_output_cum)))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            t_list = (torch.flatten(output)).tolist()
+            audio_data_np = np.array(t_list)
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.log10(fft_output_cum / fft_input_cum))
+            plt.title("Transfer function Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude Log10")
+            plt.grid(True)
+            plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(-3, 3)
+            plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
+            plt.clf()
+            data = np.vstack((freq_axis, np.log10(fft_output_cum / fft_input_cum)))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "transfer_function.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            """t_list = (torch.flatten(cum_output)).tolist()
+            audio_data_np = np.array(t_list)
+            fft_result = fft(audio_data_np)
+            fft_output = fft_result
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_result))
+            plt.title("Output Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 2000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
+            plt.clf()
+    
+            t_list = (torch.flatten(cum_input)).tolist()
+            audio_data_np = np.array(t_list)
+            fft_result = fft(audio_data_np)
+            fft_input = fft_result
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_result))
+            plt.title("Input Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            #plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 2000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
+            plt.clf()
+    
+            t_list = (torch.flatten(cum_target - cum_output)).tolist()
+            audio_data_np = np.array(t_list)
+            fft_result = fft(audio_data_np)
+            sampling_rate = 16000.0
+            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+            plt.plot(freq_axis, np.abs(fft_result))
+            plt.title("Target-Output Difference Audio Spectrum")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            # plt.xlim(0, 2000)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(0, 2000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "difference_spectrum.png"))
+            plt.clf()
+    
+            fft_result = fft_input - fft_output
+            plt.plot(freq_axis, fft_result)
+            plt.title("Transfer Function")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(-2000, 2000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
+            plt.clf()
+    
+    
+    
+            fft_result = fft_target - fft_output
+            plt.plot(freq_axis, fft_result)
+            plt.title("Difference Function")
+            plt.xlabel("Frequency (Hz)")
+            plt.ylabel("Magnitude")
+            plt.grid(True)
+            plt.xscale('log', base=10)
+            plt.xlim(20, 8000)
+            plt.ylim(-2000, 2000)
+            plt.savefig(os.path.join(script_dir, "code", "output", "difference_function.png"))
+            plt.clf()"""
+
+
+
+
+
+            #fstat.close()
+            fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
+            fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
+            data = np.vstack((plot1x, plot1y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
+            fig.update_layout(title="Scatter plot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+            data = np.vstack((plot2x, plot2y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            for i in range(10):
+                plot3x.append((i/10.0) + 0.05)
+                plot3y.append(percentiles_val[i] / percentiles_count[i])
+
+            fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
+            fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
+            data = np.vstack((plot3x, plot3y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'w', newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
+            fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")
+            data = np.vstack((plot4x, plot4y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
+            fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")
+            data = np.vstack((plot5x, plot5y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+            fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
+            fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
+            data = np.vstack((plot6x, plot6y))
+            data = data.T
+            with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'w',
+                      newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerows(data)
+
+
+            df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
+            break
+        noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
+        output_db = 10.0 * math.log10(loss_func((output), zeros).item())
+        target_db = 10.0 * math.log10(loss_func((target), zeros).item())
+        SNR_fac = val_data.get_SNR_fac(idx)
+        SNR_db = 10.0 * math.log10(SNR_fac / (1.0 - SNR_fac))
+
+        fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
+        noise_db = 0.0
+        noice = val_data.get_noise_choice(idx)
+        if (noice == 1):
+            noise_db = -15.9789
+            plot4x.append(SNR_db)
+            plot4y.append(noise_remaining - noise_db - fac_noise_red)
+        if (noice == 2):
+            noise_db = -7.77903
+            plot5x.append(SNR_db)
+            plot5y.append(noise_remaining - noise_db - fac_noise_red)
+        if (noice == 3):
+            noise_db = -15.6357
+            plot6x.append(SNR_db)
+            plot6y.append(noise_remaining - noise_db - fac_noise_red)
+        plot1x.append(SNR_fac)
+        plot1y.append(noise_remaining - noise_db - fac_noise_red)
+        plot2x.append(SNR_db)
+        plot2y.append(noise_remaining - noise_db - fac_noise_red)
+
+        prc = math.floor(SNR_fac * 9.999999)  # tmp is int and ranges from 0 to 9
+        percentiles_count[prc] = percentiles_count[prc] + 1
+        percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
+
+        pdrow=pd.DataFrame([[SNR_fac, SNR_db, noise_remaining,target_db,output_db,noice]],
+                           columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
+        #df = df.append(pdrow, ignore_index=True)
+        df = pd.concat([df, pdrow])
+        #fstat.write(f"{SNR_fac}\t{noise_remaining}\t{target_db}\t{output_db}\n")
+        idx = idx + 1
+        if (it < 31):
+            print("Saving file #", it)
+            t_list = (torch.flatten(target)).tolist()
+            with open(os.path.join(script_dir, "code", "output", f"{it}_tar.rawww"), 'wb') as f:
+                for i in range(len(t_list)):
+                    packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
+                    f.write(packed_data)
+            t_list = (torch.flatten(output)).tolist()
+            with open(os.path.join(script_dir, "code", "output", f"{it}_out.rawww"), 'wb') as f:
+                for i in range(len(t_list)):
+                    packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0)*32767.5-0.5))
+                    f.write(packed_data)
+            t_list = (torch.flatten(input)).tolist()
+            with open(os.path.join(script_dir, "code", "output", f"{it}_in.rawww"), 'wb') as f:
+                for i in range(len(t_list)):
+                    packed_data = struct.pack('<h', int(bound_f(t_list[i], -1.0, 1.0) * 32767.5 - 0.5))
+                    f.write(packed_data)
 
 zip_file_path = os.path.join(script_dir, "code", "output")
 folder_path = os.path.join(script_dir, "code", "output")

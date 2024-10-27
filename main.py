@@ -379,8 +379,8 @@ def create_dataset_spectrogram():
     plt.xscale('log', base=10)
     plt.xlim(20, 8000)
     plt.ylim(0, 20000)
-    #plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
-    #plt.clf()
+    plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
+    plt.clf()
 #    plt.legend()
     data = np.vstack((freq_axis, np.abs(fft_cum)))
     data = data.T
@@ -452,6 +452,8 @@ train_model(training_data, val_data, model)
 torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
 #model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
+
+del training_data
 
 it = 0
 #testing_data = copy.deepcopy(training_data)
@@ -530,17 +532,23 @@ for input, target in test_dataloader:
         sampling_rate = 16000.0
         freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
         plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
-        #plt.title("Input Audio Spectrum")
-        #plt.xlabel("Frequency (Hz)")
-        #plt.ylabel("Magnitude")
-        #plt.grid(True)
-        #plt.xlim(0, 2000)
-        #plt.xscale('log', base=10)
-        #plt.xlim(20, 8000)
-        #plt.ylim(0, 140000)
+        plt.title("Input Audio Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Magnitude")
+        plt.grid(True)
+        plt.xlim(0, 2000)
+        plt.xscale('log', base=10)
+        plt.xlim(20, 8000)
+        plt.ylim(0, 140000)
         plt.legend()
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
+        data = np.vstack((freq_axis, np.abs(fft_input_cum))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
@@ -557,6 +565,12 @@ for input, target in test_dataloader:
         plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
+        data = np.vstack((freq_axis, np.abs(fft_target_cum))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
@@ -573,6 +587,12 @@ for input, target in test_dataloader:
         plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
+        data = np.vstack((freq_axis, np.abs(fft_output_cum))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
@@ -589,6 +609,12 @@ for input, target in test_dataloader:
         plt.ylim(-3, 3)
         plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
         plt.clf()
+        data = np.vstack((freq_axis, np.log10(fft_output_cum / fft_input_cum))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "transfer_function.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         """t_list = (torch.flatten(cum_output)).tolist()
         audio_data_np = np.array(t_list)
@@ -677,10 +703,22 @@ for input, target in test_dataloader:
         fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
+        data = np.vstack((plot1x, plot1y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
         fig.update_layout(title="Scatter plot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+        data = np.vstack((plot2x, plot2y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         for i in range(10):
             plot3x.append((i/10.0) + 0.05)
@@ -698,14 +736,32 @@ for input, target in test_dataloader:
         fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
         fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")
+        data = np.vstack((plot4x, plot4y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
         fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")
+        data = np.vstack((plot5x, plot5y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
         fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
         fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
         pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
+        data = np.vstack((plot6x, plot6y))
+        data = data.T
+        with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'w',
+                  newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerows(data)
 
 
         df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)

@@ -75,7 +75,17 @@ sorted_data = data[sort_indices]
 xax = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 
-spl = interpolate.QuadraticSpline(xax, yax)
+spl = interpolate.CubicSpline(xax, yax)
 xnew = np.linspace(0.0, 1.0, num=1001)
 plt.plot(xnew, spl(xnew))
-plt.savefig(os.path.join(script_dir, "code", "output", "aaa.png"))
+plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.png"))
+
+
+
+
+
+zip_file_path = os.path.join(script_dir, "code", "output")
+folder_path = os.path.join(script_dir, "code", "output")
+shutil.make_archive(zip_file_path, 'zip', folder_path)
+print("Zipped all outputs")
+print("Done!")

@@ -362,6 +362,26 @@ def train_model(tr_data, val_data, tr_model):
     fig = go.Figure(data=go.Scatter(x=iterations_list, y=test_db_list, mode='markers'))
     fig.update_layout(title="Test performance", xaxis_title="Batch no.", yaxis_title="Noise reduction / dB")
     pio.write_image(fig, os.path.join(script_dir, "code", "output", "test_performance.png"), format="png")
+    data = np.vstack((iterations_list, error_list))
+    data = data.T
+    with open(os.path.join(script_dir, "code", "output", "training_loss.csv"), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(data)
+    data = np.vstack((iterations_list, l1_error_list))
+    data = data.T
+    with open(os.path.join(script_dir, "code", "output", "training_loss_l1.csv"), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(data)
+    data = np.vstack((iterations_list, test_db_list))
+    data = data.T
+    with open(os.path.join(script_dir, "code", "output", "test_performance.csv"), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(data)
+    data = np.vstack((iterations_list, test_l1_db_list))
+    data = data.T
+    with open(os.path.join(script_dir, "code", "output", "test_l1_performance.csv"), 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerows(data)
 
 
 
@@ -430,7 +450,7 @@ create_dataset_spectrogram()
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
-test_data = AudioDataSet(test_files)
+#test_data = AudioDataSet(test_files)
 print("Finished preparing training data.")
 
 
@@ -541,7 +561,10 @@ with torch.no_grad():
         fft_result = fft(audio_data_np)
         fft_input_cum = fft_input_cum + np.abs(fft_result)
 
-        if (it > 2000):
+        if (it > 4000):
+
+            if (it % 200 == 0):
+                print("Validation progress: ", it /  40, "%")
 
 
             t_list = (torch.flatten(input)).tolist()

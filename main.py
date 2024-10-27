@@ -543,7 +543,7 @@ for input, target in test_dataloader:
         plt.legend()
         plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
         plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_input_cum))
+        data = np.vstack((freq_axis, np.abs(fft_input_cum)))
         data = data.T
         with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
                   newline='') as csvfile:
@@ -565,7 +565,7 @@ for input, target in test_dataloader:
         plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
         plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_target_cum))
+        data = np.vstack((freq_axis, np.abs(fft_target_cum)))
         data = data.T
         with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
                   newline='') as csvfile:
@@ -587,7 +587,7 @@ for input, target in test_dataloader:
         plt.ylim(0, 48000)
         plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
         plt.clf()
-        data = np.vstack((freq_axis, np.abs(fft_output_cum))
+        data = np.vstack((freq_axis, np.abs(fft_output_cum)))
         data = data.T
         with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',
                   newline='') as csvfile:
@@ -609,7 +609,7 @@ for input, target in test_dataloader:
         plt.ylim(-3, 3)
         plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
         plt.clf()
-        data = np.vstack((freq_axis, np.log10(fft_output_cum / fft_input_cum))
+        data = np.vstack((freq_axis, np.log10(fft_output_cum / fft_input_cum)))
         data = data.T
         with open(os.path.join(script_dir, "code", "output", "transfer_function.csv"), 'w',
                   newline='') as csvfile:

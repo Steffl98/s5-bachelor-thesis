@@ -774,7 +774,7 @@ for input, target in test_dataloader:
 
     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
     noise_db = 0.0
-    noice = test_dataloader.get_noise_choice(idx)
+    noice = val_data.get_noise_choice(idx)
     if (noice == 1):
         noise_db = -15.9789
         plot4x.append(SNR_db)

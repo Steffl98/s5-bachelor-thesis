@@ -123,11 +123,11 @@ for i in range(max_len):
     val_shot_y = shot_y[i] if i < len(shot_y) else None
 
     if i < len(pink_x):
-        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Data Set 1' if i == 0 else "")
+        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=0.3, alpha=0.5)
     if i < len(white_x):
-        plt.scatter(val_white_x, val_white_y, color='green', label='Data Set 2' if i == 0 else "")
-    if i < len(shot_y):
-        plt.scatter(val_shot_x, val_shot_y, color='red', label='Data Set 3' if i == 0 else "")
+        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=0.3, alpha=0.5)
+    if i < len(shot_x):
+        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=0.3, alpha=0.5)
 
 #plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
 #plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)

@@ -72,7 +72,7 @@ xax = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 
 spl = interpolate.CubicSpline(xax, yax)
-xnew = np.linspace(0.0, 1.0, num=1001)
+xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew))
 plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.png"))
 plt.clf()
@@ -136,7 +136,7 @@ plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
 #plt.title('Scatter Plot')
 plt.legend()
-plt.savefig(os.path.join(script_dir, "code", "output", "noise_reduction_by_type.png"))
+plt.savefig(os.path.join(script_dir, "code", "output", "noise_reduction_by_type.png"), dpi=600)
 plt.clf()
 
 

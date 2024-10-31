@@ -18,6 +18,10 @@ from scipy import interpolate
 
 
 
+
+# STEPS NOT BATCH NO.
+
+
 script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
 try:
     argument1 = sys.argv[1]
@@ -34,15 +38,11 @@ with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"),
     reader = csv.reader(csvfile)
     data = list(reader)
 
-# Convert the list to a NumPy array
-data = np.array(data, dtype=float)  # Adjust the dtype if necessary
-
+data = np.array(data, dtype=float)
 sort_indices = np.argsort(data[:, 0])
 sorted_data = data[sort_indices]
-
 freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1]
-
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')
 plt.title("Data Set Audio Spectrum")
 plt.xlabel("Frequency (Hz)")
@@ -65,13 +65,9 @@ plt.clf()
 with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
     data = list(reader)
-
-# Convert the list to a NumPy array
-data = np.array(data, dtype=float)  # Adjust the dtype if necessary
-
+data = np.array(data, dtype=float)
 sort_indices = np.argsort(data[:, 0])
 sorted_data = data[sort_indices]
-
 xax = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 
@@ -79,6 +75,46 @@ spl = interpolate.CubicSpline(xax, yax)
 xnew = np.linspace(0.0, 1.0, num=1001)
 plt.plot(xnew, spl(xnew))
 plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.png"))
+plt.clf()
+
+
+
+
+
+
+with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+shot_x = data[:, 0]
+shot_y = data[:, 1]
+
+with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+white_x = data[:, 0]
+white_y = data[:, 1]
+
+with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+pink_x = data[:, 0]
+pink_y = data[:, 1]
+
+plt.scatter(shot_x, shot_y, color='brown', label='Shot Noise')
+plt.scatter(pink_x, pink_y, color='pink', label='Pink Noise')
+plt.scatter(white_x, white_y, color='orange', label='White Noise')
+plt.xlabel('SNR in dB')
+plt.ylabel('Noise reduction in dB')
+#plt.title('Scatter Plot')
+plt.legend()
+plt.savefig(os.path.join(script_dir, "code", "output", "noise_reduction_by_type.png"))
+plt.clf()
+
+
+
 
 
 

@@ -88,6 +88,9 @@ with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv")
 data = np.array(data, dtype=float)
 shot_x = data[:, 0]
 shot_y = data[:, 1]
+indices = np.random.permutation(len(shot_x))
+shot_x = shot_x[indices]
+shot_y = shot_y[indices]
 
 with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
@@ -95,6 +98,9 @@ with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"
 data = np.array(data, dtype=float)
 white_x = data[:, 0]
 white_y = data[:, 1]
+indices = np.random.permutation(len(white_x))
+white_x = white_x[indices]
+white_y = white_y[indices]
 
 with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
@@ -102,10 +108,30 @@ with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv")
 data = np.array(data, dtype=float)
 pink_x = data[:, 0]
 pink_y = data[:, 1]
+indices = np.random.permutation(len(pink_x))
+pink_x = pink_x[indices]
+pink_y = pink_y[indices]
 
-plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
-plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)
-plt.scatter(white_x, white_y, color='green', label='White Noise', s=0.3, alpha=0.5)
+max_len = max(len(shot_x), len(pink_x), len(white_x))
+
+for i in range(max_len):
+    val_pink_x = pink_x[i] if i < len(pink_x) else None
+    val_white_x = white_x[i] if i < len(white_x) else None
+    val_shot_x = shot_x[i] if i < len(shot_x) else None
+    val_pink_y = pink_y[i] if i < len(pink_y) else None
+    val_white_y = white_y[i] if i < len(white_y) else None
+    val_shot_y = shot_y[i] if i < len(shot_y) else None
+
+    if i < len(pink_x):
+        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Data Set 1' if i == 0 else "")
+    if i < len(white_x):
+        plt.scatter(val_white_x, val_white_y, color='green', label='Data Set 2' if i == 0 else "")
+    if i < len(shot_y):
+        plt.scatter(val_shot_x, val_shot_y, color='red', label='Data Set 3' if i == 0 else "")
+
+#plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
+#plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)
+#plt.scatter(white_x, white_y, color='green', label='White Noise', s=0.3, alpha=0.5)
 plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
 #plt.title('Scatter Plot')

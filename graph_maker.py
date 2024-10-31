@@ -103,9 +103,9 @@ data = np.array(data, dtype=float)
 pink_x = data[:, 0]
 pink_y = data[:, 1]
 
-plt.scatter(shot_x, shot_y, color='brown', label='Shot Noise', s=3.0, alpha=0.5)
-plt.scatter(pink_x, pink_y, color='pink', label='Pink Noise', s=3.0, alpha=0.5)
-plt.scatter(white_x, white_y, color='orange', label='White Noise', s=3.0, alpha=0.5)
+plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=1.0, alpha=0.5)
+plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=1.0, alpha=0.5)
+plt.scatter(white_x, white_y, color='green', label='White Noise', s=1.0, alpha=0.5)
 plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
 #plt.title('Scatter Plot')

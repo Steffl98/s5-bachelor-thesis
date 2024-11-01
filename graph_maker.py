@@ -61,7 +61,7 @@ plt.clf()
 
 
 
-with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'r') as csvfile:
+with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
     data = list(reader)
 data = np.array(data, dtype=float)

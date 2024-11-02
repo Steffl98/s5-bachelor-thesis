@@ -207,6 +207,57 @@ plt.clf()
 
 
 
+with open(os.path.join(script_dir, "code", "output", "test_performance.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+test_data = np.array(data, dtype=float)
+
+with open(os.path.join(script_dir, "code", "output", "test_l1_performance.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+test_l1_data = np.array(data, dtype=float)
+
+with open(os.path.join(script_dir, "code", "output", "training_loss.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+loss_data = np.array(data, dtype=float)
+
+x_data_1 = test_data[:, 0]
+y_data_1 = test_data[:, 1]
+x_data_2 = loss_data[:, 0]
+y_data_2 = loss_data[:, 1]
+
+fig, ax1 = plt.subplots()
+color = 'tab:red'
+ax1.set_xlabel('X data 1')
+ax1.set_ylabel('Y data 1', color=color)
+ax1.plot(x_data_1, y_data_1, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+ax2 = ax1.twinx()
+color = 'tab:blue'
+ax2.set_ylabel('Y data 2', color=color)
+ax2.plot(x_data_2, y_data_2, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+fig.tight_layout()
+plt.savefig(os.path.join(script_dir, "code", "output", "training_vs_test_loss.png"), dpi=600)
+plt.clf()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 zip_file_path = os.path.join(script_dir, "code", "output")
 folder_path = os.path.join(script_dir, "code", "output")
 shutil.make_archive(zip_file_path, 'zip', folder_path)

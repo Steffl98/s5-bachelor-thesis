@@ -277,7 +277,7 @@ x_data_1 = test_data[:, 0]
 y_data_1 = test_data[:, 1]
 x_data_2 = loss_data[:, 0]
 y_data_2 = loss_data[:, 1]
-y_data_3 = test_l1_data[:, 1]
+x_data_3 = test_l1_data[:, 1]
 y_data_3 = test_l1_data[:, 1]
 
 fig, ax1 = plt.subplots()

@@ -269,7 +269,7 @@ for i in range(max_len):
 plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
 
-
+binxax = np.array(binxax)
 binxax = 10.0 * np.log10(binxax / (1.0 - binxax))
 
 spl = interpolate.CubicSpline(binxax, y_median)

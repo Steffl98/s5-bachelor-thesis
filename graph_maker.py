@@ -246,6 +246,21 @@ for i in range(max_len):
 #plt.scatter(white_x, white_y, color='green', label='White Noise', s=0.3, alpha=0.5)
 plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
+
+
+
+spl = interpolate.CubicSpline(xax, y_median)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='Median')
+spl = interpolate.CubicSpline(xax, y_std_plus)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
+spl = interpolate.CubicSpline(xax, y_std_minus)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
+
+
+
 #plt.title('Scatter Plot')
 plt.legend()
 plt.savefig(os.path.join(script_dir, "code", "output", "noise_reduction_by_type.png"), dpi=600)

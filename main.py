@@ -43,6 +43,7 @@ STATE_DIM = 8
 DIM = 12
 LR = 0.0025
 SAMPLE_LEN = 32000
+SNR_MODE_DB = True
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -169,7 +170,12 @@ class AudioDataSet(Dataset):
         self.fshift = []
         self.offs = []
         for _ in range(ITERATIONS):
-            (self.SNR_fac).append(random.uniform(0.0, 1.0)) # formerly 0.75 - 1
+            if SNR_MODE_DB:
+                db = random.uniform(-10.0, 10.0)
+                cur_fac = 1.0 - (  1.0/( 1.0 + math.exp(0.230259 * db) )  )
+            else:
+                cur_fac = random.uniform(0.0, 1.0)
+            (self.SNR_fac).append(cur_fac) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
             (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
             (self.offs).append(random.randint(0, 16000))

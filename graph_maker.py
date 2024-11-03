@@ -143,6 +143,57 @@ plt.clf()
 
 
 
+
+with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+bins = np.linspace(0, 1, 11)
+bin_indices = np.digitize(xdata, bins) - 1
+binned_data = [[] for _ in range(10)]
+for i, bin_idx in enumerate(bin_indices):
+    binned_data[bin_idx].append((xdata[i], ydata[i]))
+binned_data = [np.array(bin_data) for bin_data in binned_data]
+y_median = []
+y_std_minus = []
+y_std_plus = []
+xax = []
+for i in range(10):
+    xax.append(0.05 + i*0.1)
+    bin_data = binned_data[i]
+    y_median.append(np.median(bin_data[:, 1]))
+    y_std_minus.append(np.percentile(bin_data[:, 1], 15.8655253931457))
+    y_std_plus.append(np.percentile(bin_data[:, 1], 84.1344746068543))
+#first_bin_y_std = np.std(first_bin_data[:, 1])
+#first_bin_y_threshold = first_bin_y_median + 3 * first_bin_y_std
+
+spl = interpolate.CubicSpline(xax, y_median)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew))
+plt.savefig(os.path.join(script_dir, "code", "output", "spline_median.png"))
+plt.clf()
+
+spl = interpolate.CubicSpline(xax, y_std_plus)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew))
+plt.savefig(os.path.join(script_dir, "code", "output", "spline_plus.png"))
+plt.clf()
+
+spl = interpolate.CubicSpline(xax, y_std_minus)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew))
+plt.savefig(os.path.join(script_dir, "code", "output", "spline_minus.png"))
+plt.clf()
+
+
+
+
+
+
+
+
 with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
     data = list(reader)
@@ -184,11 +235,11 @@ for i in range(max_len):
     val_shot_y = shot_y[i] if i < len(shot_y) else None
 
     if i < len(pink_x):
-        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=0.15, alpha=0.5)
+        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=0.15, alpha=0.25)
     if i < len(white_x):
-        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=0.15, alpha=0.5)
+        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=0.15, alpha=0.25)
     if i < len(shot_x):
-        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=0.15, alpha=0.5)
+        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=0.15, alpha=0.25)
 
 #plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
 #plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)
@@ -226,22 +277,55 @@ x_data_1 = test_data[:, 0]
 y_data_1 = test_data[:, 1]
 x_data_2 = loss_data[:, 0]
 y_data_2 = loss_data[:, 1]
+y_data_3 = test_l1_data[:, 1]
+y_data_3 = test_l1_data[:, 1]
 
 fig, ax1 = plt.subplots()
 color = 'tab:red'
-ax1.set_xlabel('X data 1')
-ax1.set_ylabel('Y data 1', color=color)
+ax1.set_xlabel('Steps')
+ax1.set_ylabel('Test Loss', color=color)
 ax1.plot(x_data_1, y_data_1, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 ax2 = ax1.twinx()
 color = 'tab:blue'
-ax2.set_ylabel('Y data 2', color=color)
+ax2.set_ylabel('Training Loss', color=color)
 ax2.plot(x_data_2, y_data_2, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 fig.tight_layout()
 plt.savefig(os.path.join(script_dir, "code", "output", "training_vs_test_loss.png"), dpi=600)
 plt.clf()
 
+
+fig, ax1 = plt.subplots()
+color = 'tab:red'
+ax1.set_xlabel('Steps')
+ax1.set_ylabel('Test Loss', color=color)
+ax1.plot(x_data_1, y_data_1, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+ax2 = ax1.twinx()
+color = 'tab:blue'
+ax2.set_ylabel('Test Loss L1', color=color)
+ax2.plot(x_data_3, y_data_3, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+fig.tight_layout()
+plt.savefig(os.path.join(script_dir, "code", "output", "test_l1_vs_test_loss.png"), dpi=600)
+plt.clf()
+
+
+fig, ax1 = plt.subplots()
+color = 'tab:red'
+ax1.set_xlabel('Steps')
+ax1.set_ylabel('Training Loss', color=color)
+ax1.plot(x_data_2, y_data_2, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+ax2 = ax1.twinx()
+color = 'tab:blue'
+ax2.set_ylabel('Test Loss L1', color=color)
+ax2.plot(x_data_3, y_data_3, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+fig.tight_layout()
+plt.savefig(os.path.join(script_dir, "code", "output", "training_vs_test_l1_loss.png"), dpi=600)
+plt.clf()
 
 
 

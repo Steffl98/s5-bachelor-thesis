@@ -269,10 +269,35 @@ for i in range(max_len):
 plt.xlabel('SNR in dB')
 plt.ylabel('Noise reduction in dB')
 
-binxax = np.array(binxax)
+"""binxax = np.array(binxax)
 binxax = 10.0 * np.log10(binxax / (1.0 - binxax))
 rangefrom = 10.0 * np.log10(0.05 / (1.0 - 0.05))
-rangeto = 10.0 * np.log10(0.95 / (1.0 - 0.95))
+rangeto = 10.0 * np.log10(0.95 / (1.0 - 0.95))"""
+
+with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+
+bins = np.linspace(-10, 10, 11)
+bin_indices = np.digitize(xdata, bins) - 1
+binned_data = [[] for _ in range(10)]
+for i, bin_idx in enumerate(bin_indices):
+    binned_data[bin_idx].append((xdata[i], ydata[i]))
+binned_data = [np.array(bin_data) for bin_data in binned_data]
+y_median = []
+y_std_minus = []
+y_std_plus = []
+binxax = []
+for i in range(10):
+    binxax.append(-9.0 + 2.0*i)
+    bin_data = binned_data[i]
+    y_median.append(np.median(bin_data[:, 1]))
+    y_std_minus.append(np.percentile(bin_data[:, 1], 15.8655253931457))
+    y_std_plus.append(np.percentile(bin_data[:, 1], 84.1344746068543))
+
 
 spl = interpolate.CubicSpline(binxax, y_median)
 xnew = np.linspace(rangefrom, rangeto, num=1001)

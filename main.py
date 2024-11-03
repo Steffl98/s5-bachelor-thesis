@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*20#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -44,6 +44,7 @@ DIM = 12
 LR = 0.0025
 SAMPLE_LEN = 32000
 SNR_MODE_DB = True
+DO_TRAIN_MODEL = False
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -490,8 +491,11 @@ plt.clf()
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
 print("Finished preparing model.")
 
-train_model(training_data, val_data, model)
-torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
+if DO_TRAIN_MODEL:
+    train_model(training_data, val_data, model)
+    torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
+else:
+    model.load_state_dict(torch.load(model_path))
 #model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
 

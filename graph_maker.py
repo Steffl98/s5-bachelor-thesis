@@ -277,20 +277,20 @@ x_data_1 = test_data[:, 0]
 y_data_1 = test_data[:, 1]
 x_data_2 = loss_data[:, 0]
 y_data_2 = loss_data[:, 1]
-x_data_3 = test_l1_data[:, 1]
+x_data_3 = test_l1_data[:, 0]
 y_data_3 = test_l1_data[:, 1]
 
 fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Steps')
 ax1.set_ylabel('Test Loss', color=color)
-ax1.set_ylim(bottom=np.min(y_data_1), top=np.max(y_data_1))
+#ax1.set_ylim(bottom=np.min(y_data_1), top=np.max(y_data_1))
 ax1.plot(x_data_1, y_data_1, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 ax2 = ax1.twinx()
 color = 'tab:blue'
 ax2.set_ylabel('Training Loss', color=color)
-ax2.set_ylim(bottom=np.min(y_data_2), top=np.max(y_data_2))
+#ax2.set_ylim(bottom=np.min(y_data_2), top=np.max(y_data_2))
 ax2.plot(x_data_2, y_data_2, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 fig.tight_layout()
@@ -302,13 +302,13 @@ fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Steps')
 ax1.set_ylabel('Test Loss', color=color)
-ax1.set_ylim(bottom=np.min(y_data_1), top=np.max(y_data_1))
+#ax1.set_ylim(bottom=np.min(y_data_1), top=np.max(y_data_1))
 ax1.plot(x_data_1, y_data_1, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 ax2 = ax1.twinx()
 color = 'tab:blue'
 ax2.set_ylabel('Test Loss L1', color=color)
-ax2.set_ylim(bottom=np.min(y_data_3), top=np.max(y_data_3))
+#ax2.set_ylim(bottom=np.min(y_data_3), top=np.max(y_data_3))
 ax2.plot(x_data_3, y_data_3, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 fig.tight_layout()
@@ -320,13 +320,13 @@ fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Steps')
 ax1.set_ylabel('Training Loss', color=color)
-ax1.set_ylim(bottom=np.min(y_data_2), top=np.max(y_data_2))
+#ax1.set_ylim(bottom=np.min(y_data_2), top=np.max(y_data_2))
 ax1.plot(x_data_2, y_data_2, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
 ax2 = ax1.twinx()
 color = 'tab:blue'
 ax2.set_ylabel('Test Loss L1', color=color)
-ax2.set_ylim(bottom=np.min(y_data_3), top=np.max(y_data_3))
+#ax2.set_ylim(bottom=np.min(y_data_3), top=np.max(y_data_3))
 ax2.plot(x_data_3, y_data_3, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 fig.tight_layout()

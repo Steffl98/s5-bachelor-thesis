@@ -395,7 +395,8 @@ def train_model(tr_data, val_data, tr_model):
 def create_dataset_spectrogram():
     files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
     cntrr = 0
-    fft_cum = np.array([0] * 50000)
+    #fft_cum = np.array([0] * 50000)
+    fft_accumulator = None
     for item in files:
         cntrr = cntrr + 1
         if (cntrr % 32 == 0):
@@ -408,12 +409,18 @@ def create_dataset_spectrogram():
         #t_list = (torch.flatten(label_data)).tolist()
         audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
         fft_result = fft(audio_data_np)
-        fft_cum = fft_cum + np.abs(fft_result)
+        if fft_accumulator is None:
+            fft_accumulator = np.zeros_like(fft_result, dtype=np.float64)
+        fft_accumulator += np.abs(fft_result)
 
-    audio_data_np = np.array(label_data)
+    #audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
-    freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-    plt.plot(freq_axis, np.abs(fft_cum), color='blue', label='Before augmentations')
+    fft_average = fft_accumulator / float(cntrr)
+    #freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
+    freq_axis = np.fft.fftfreq(len(fft_average), 1 / sampling_rate)
+    positive_frequencies = frequencies[:len(frequencies) // 2]
+    positive_fft_average = fft_average[:len(fft_average) // 2]
+    """plt.plot(freq_axis, np.abs(fft_cum), color='blue', label='Before augmentations')
     plt.title("Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Magnitude")
@@ -423,9 +430,10 @@ def create_dataset_spectrogram():
     plt.xlim(20, 8000)
     plt.ylim(0, 20000)
     plt.savefig(os.path.join(script_dir, "code", "output", "data_set_spectrum.png"))
-    plt.clf()
+    plt.clf()"""
 #    plt.legend()
-    data = np.vstack((freq_axis, np.abs(fft_cum)))
+    #data = np.vstack((freq_axis, np.abs(fft_cum)))
+    data = np.vstack((positive_frequencies, positive_fft_average))
     data = data.T
     with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"), 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
@@ -558,17 +566,17 @@ with torch.no_grad():
 
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
+        fft_result = np.fft.fft(audio_data_np)
         fft_target_cum = fft_target_cum + np.abs(fft_result)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
+        fft_result = np.fft.fft(audio_data_np)
         fft_output_cum = fft_output_cum + np.abs(fft_result)
 
         t_list = (torch.flatten(input)).tolist()
         audio_data_np = np.array(t_list)
-        fft_result = fft(audio_data_np)
+        fft_result = np.fft.fft(audio_data_np)
         fft_input_cum = fft_input_cum + np.abs(fft_result)
 
         if (it > 4000):
@@ -577,11 +585,9 @@ with torch.no_grad():
                 print("Validation progress: ", it /  40, "%")
 
 
-            t_list = (torch.flatten(input)).tolist()
-            audio_data_np = np.array(t_list)
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-            plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            """plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
             plt.title("Input Audio Spectrum")
             plt.xlabel("Frequency (Hz)")
             plt.ylabel("Magnitude")
@@ -592,19 +598,19 @@ with torch.no_grad():
             plt.ylim(0, 140000)
             plt.legend()
             plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
-            plt.clf()
-            data = np.vstack((freq_axis, np.abs(fft_input_cum)))
+            plt.clf()"""
+            positive_frequencies = freq_axis[:len(freq_axis) // 2]
+            positive_fft_average = fft_input_cum[:len(freq_axis) // 2]
+            data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
                       newline='') as csvfile:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            t_list = (torch.flatten(target)).tolist()
-            audio_data_np = np.array(t_list)
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-            plt.plot(freq_axis, np.abs(fft_target_cum))
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            """plt.plot(freq_axis, np.abs(fft_target_cum))
             plt.title("Target Audio Spectrum")
             plt.xlabel("Frequency (Hz)")
             plt.ylabel("Magnitude")
@@ -614,19 +620,19 @@ with torch.no_grad():
             plt.xlim(20, 8000)
             plt.ylim(0, 48000)
             plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
-            plt.clf()
-            data = np.vstack((freq_axis, np.abs(fft_target_cum)))
+            plt.clf()"""
+            positive_frequencies = freq_axis[:len(freq_axis) // 2]
+            positive_fft_average = fft_target_cum[:len(freq_axis) // 2]
+            data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
                       newline='') as csvfile:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            t_list = (torch.flatten(output)).tolist()
-            audio_data_np = np.array(t_list)
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-            plt.plot(freq_axis, np.abs(fft_output_cum))
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            """plt.plot(freq_axis, np.abs(fft_output_cum))
             plt.title("Output Audio Spectrum")
             plt.xlabel("Frequency (Hz)")
             plt.ylabel("Magnitude")
@@ -636,8 +642,10 @@ with torch.no_grad():
             plt.xlim(20, 8000)
             plt.ylim(0, 48000)
             plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
-            plt.clf()
-            data = np.vstack((freq_axis, np.abs(fft_output_cum)))
+            plt.clf()"""
+            positive_frequencies = freq_axis[:len(freq_axis) // 2]
+            positive_fft_average = fft_output_cum[:len(freq_axis) // 2]
+            data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',
                       newline='') as csvfile:

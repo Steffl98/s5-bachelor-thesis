@@ -49,9 +49,7 @@ plt.xlabel("Frequency (Hz)")
 plt.ylabel("Magnitude")
 plt.grid(True)
 #plt.xlim(0, 2000)
-plt.xscale('log', base=10)
-plt.xlim(20, 8000)
-plt.ylim(0, 20000)
+
 
 with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
@@ -63,6 +61,10 @@ sorted_data = data[sort_indices] / 5.0
 freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 plt.plot(freq_axis, yax, color='orange', label='After augmentations')
+
+plt.xscale('log', base=10)
+plt.xlim(20, 8000)
+plt.ylim(0, 20000)
 
 plt.savefig(os.path.join(script_dir, "code", "output", "augmentations_before_after.png"))
 plt.clf()

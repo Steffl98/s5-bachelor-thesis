@@ -418,8 +418,8 @@ def create_dataset_spectrogram():
     fft_average = fft_accumulator / float(cntrr)
     #freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
     freq_axis = np.fft.fftfreq(len(fft_average), 1 / sampling_rate)
-    positive_frequencies = frequencies[:len(frequencies) // 2]
-    positive_fft_average = fft_average[:len(fft_average) // 2]
+    positive_frequencies = freq_axis[:len(freq_axis) // 2]
+    positive_fft_average = fft_average[:len(freq_axis) // 2]
     """plt.plot(freq_axis, np.abs(fft_cum), color='blue', label='Before augmentations')
     plt.title("Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")

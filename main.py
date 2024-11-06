@@ -503,7 +503,7 @@ if DO_TRAIN_MODEL:
     train_model(training_data, val_data, model)
     torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
 else:
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth"))
 #model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
 

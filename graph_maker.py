@@ -45,10 +45,7 @@ freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1] * 4000.0
 yax = yax / np.mean(yax)
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')
-plt.title("Data Set Audio Spectrum")
-plt.xlabel("Frequency (Hz)")
-plt.ylabel("Magnitude")
-plt.grid(True)
+
 #plt.xlim(0, 2000)
 
 
@@ -63,6 +60,10 @@ freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 yax = yax / np.mean(yax)
 plt.plot(freq_axis, yax, color='orange', label='After augmentations')
+plt.title("Data Set Audio Spectrum")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.grid(True)
 
 plt.xscale('log', base=10)
 plt.xlim(20, 8000)

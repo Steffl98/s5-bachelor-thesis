@@ -408,7 +408,7 @@ def create_dataset_spectrogram():
         label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
         audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
-        fft_result = fft(audio_data_np)
+        fft_result = np.fft.fft(audio_data_np)
         if fft_accumulator is None:
             fft_accumulator = np.zeros_like(fft_result, dtype=np.float64)
         fft_accumulator += np.abs(fft_result)
@@ -417,9 +417,11 @@ def create_dataset_spectrogram():
     sampling_rate = 16000.0
     fft_average = fft_accumulator / float(cntrr)
     #freq_axis = np.fft.fftfreq(len(audio_data_np), 1.0 / sampling_rate)
-    freq_axis = np.fft.fftfreq(len(fft_average), 1 / sampling_rate)
-    positive_frequencies = freq_axis[:len(freq_axis) // 2]
-    positive_fft_average = fft_average[:len(freq_axis) // 2]
+    freq_axis = np.fft.fftfreq(50000, 1 / sampling_rate)
+    x_filtered = freq_axis[freq_axis > -0.0001]
+    y_filtered = fft_average[freq_axis > -0.0001]
+    positive_frequencies = x_filtered # freq_axis[:len(freq_axis) // 2]
+    positive_fft_average = y_filtered # fft_average[:len(freq_axis) // 2]
     """plt.plot(freq_axis, np.abs(fft_cum), color='blue', label='Before augmentations')
     plt.title("Data Set Audio Spectrum")
     plt.xlabel("Frequency (Hz)")

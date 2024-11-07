@@ -623,8 +623,8 @@ with torch.no_grad():
             plt.ylim(0, 48000)
             plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
             plt.clf()"""
-            positive_frequencies = freq_axis[:len(freq_axis) // 2]
-            positive_fft_average = fft_target_cum[:len(freq_axis) // 2]
+            positive_frequencies = freq_axis[freq_axis > -0.00001]
+            positive_fft_average = fft_target_cum[freq_axis > -0.00001]
             data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',

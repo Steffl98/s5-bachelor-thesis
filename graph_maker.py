@@ -42,7 +42,7 @@ data = np.array(data, dtype=float)
 sort_indices = np.argsort(data[:, 0])
 sorted_data = data[sort_indices]
 freq_axis = sorted_data[:, 0]
-yax = sorted_data[:, 1]
+yax = sorted_data[:, 1] * 4000.0
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')
 plt.title("Data Set Audio Spectrum")
 plt.xlabel("Frequency (Hz)")

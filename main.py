@@ -407,7 +407,11 @@ def create_dataset_spectrogram():
         wav = read_wav(item)
         label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
-        audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
+        label_data = amplify(label_data, 1.0) # ????
+        aaaa = (torch.tensor(label_data)).unsqueeze(1)
+        t_list = (torch.flatten(aaaa)).tolist()
+        audio_data_np = np.array(t_list)
+        #audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
         fft_result = np.fft.fft(audio_data_np)
         if fft_accumulator is None:
             fft_accumulator = np.zeros_like(fft_result, dtype=np.float64)

@@ -55,7 +55,7 @@ with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'r'
 
 data = np.array(data, dtype=float)
 sort_indices = np.argsort(data[:, 0])
-sorted_data = data[sort_indices] / 5.0
+sorted_data = data[sort_indices]
 freq_axis = sorted_data[:, 0]
 yax = sorted_data[:, 1]
 yax = yax / np.mean(yax)

@@ -412,7 +412,7 @@ def create_dataset_spectrogram():
         fft_result = np.fft.fft(label_data)
         if fft_accumulator is None:
             fft_accumulator = np.zeros_like(fft_result, dtype=np.float64)
-        fft_accumulator += np.abs(fft_result)
+        fft_accumulator += np.abs(fft_result) / float(50000)
 
     #audio_data_np = np.array(label_data)
     sampling_rate = 16000.0
@@ -600,17 +600,17 @@ with torch.no_grad():
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_target_cum = fft_target_cum + np.abs(fft_result)
+        fft_target_cum = fft_target_cum + np.abs(fft_result) / float(SAMPLE_LEN)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_output_cum = fft_output_cum + np.abs(fft_result)
+        fft_output_cum = fft_output_cum + np.abs(fft_result) / float(SAMPLE_LEN)
 
         t_list = (torch.flatten(input)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_input_cum = fft_input_cum + np.abs(fft_result)
+        fft_input_cum = fft_input_cum + np.abs(fft_result) / float(SAMPLE_LEN)
 
         if (it > 4000):
 

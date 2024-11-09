@@ -448,6 +448,17 @@ def create_dataset_spectrogram():
 #script_dir = os.path.dirname(__file__)
 #script_dir = "C:\\Users\\stefa\\OneDrive\\Desktop\\Uni\\Bachelorarbeit\\audio"
 
+
+if DO_TRAIN_MODEL:
+    print("Enter model filename to be saved.")
+else:
+    print("Enter model filename to be loaded.")
+
+print("Default = my_model.pth\n ")
+MODEL_FILENAME = input("filename: ")
+if MODEL_FILENAME == "":
+    MODEL_FILENAME = "my_model.pth"
+
 wav_lens = []
 all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
 for i in all_files:
@@ -503,9 +514,9 @@ print("Finished preparing model.")
 
 if DO_TRAIN_MODEL:
     train_model(training_data, val_data, model)
-    torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "my_model.pth"))
+    torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", MODEL_FILENAME))
 else:
-    model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
+    model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", MODEL_FILENAME)))
 #model.load_state_dict(torch.load(os.path.join(script_dir, "code", "output", "my_model.pth")))
 print("Done training model.")
 

@@ -407,12 +407,8 @@ def create_dataset_spectrogram():
         wav = read_wav(item)
         label_data, samplecnt = resample2(wav, 44.1 / 16.0, 50000)
         #t_list = (torch.flatten(label_data)).tolist()
-        label_data = amplify(label_data, 1.0) # ????
-        aaaa = (torch.tensor(label_data)).unsqueeze(1)
-        t_list = (torch.flatten(aaaa)).tolist()
-        audio_data_np = np.array(t_list)
         #audio_data_np = np.array(label_data) * (16000.00 / float(samplecnt))#t_list)
-        fft_result = np.fft.fft(audio_data_np)
+        fft_result = np.fft.fft(label_data)
         if fft_accumulator is None:
             fft_accumulator = np.zeros_like(fft_result, dtype=np.float64)
         fft_accumulator += np.abs(fft_result)
@@ -606,7 +602,7 @@ with torch.no_grad():
             plt.savefig(os.path.join(script_dir, "code", "output", "input_spectrum.png"))
             plt.clf()"""
             positive_frequencies = freq_axis[:len(freq_axis) // 2]
-            positive_fft_average = fft_input_cum[:len(freq_axis) // 2]
+            positive_fft_average = fft_input_cum[:len(freq_axis) // 2] / 4000.0
             data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'w',
@@ -628,7 +624,7 @@ with torch.no_grad():
             plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
             plt.clf()"""
             positive_frequencies = freq_axis[freq_axis > -0.00001]
-            positive_fft_average = fft_target_cum[freq_axis > -0.00001]
+            positive_fft_average = fft_target_cum[freq_axis > -0.00001] / 4000.0
             data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'w',
@@ -650,7 +646,7 @@ with torch.no_grad():
             plt.savefig(os.path.join(script_dir, "code", "output", "output_spectrum.png"))
             plt.clf()"""
             positive_frequencies = freq_axis[:len(freq_axis) // 2]
-            positive_fft_average = fft_output_cum[:len(freq_axis) // 2]
+            positive_fft_average = fft_output_cum[:len(freq_axis) // 2] / 4000.0
             data = np.vstack((positive_frequencies, positive_fft_average))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'w',

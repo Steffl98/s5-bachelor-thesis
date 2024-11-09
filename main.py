@@ -43,8 +43,9 @@ STATE_DIM = 8
 DIM = 12
 LR = 0.0025
 SAMPLE_LEN = 32000
-SNR_MODE_DB = True
+SNR_MODE_DB = False
 DO_TRAIN_MODEL = False
+SNR_RANGE = 10.0
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -172,7 +173,7 @@ class AudioDataSet(Dataset):
         self.offs = []
         for _ in range(ITERATIONS):
             if SNR_MODE_DB:
-                db = random.uniform(-10.0, 10.0)
+                db = random.uniform((0.0-SNR_RANGE), SNR_RANGE)
                 cur_fac = 1.0 - (  1.0/( 1.0 + math.exp(0.230259 * db) )  )
             else:
                 cur_fac = random.uniform(0.0, 1.0)
@@ -458,6 +459,25 @@ print("Default = my_model.pth\n ")
 MODEL_FILENAME = input("filename: ")
 if MODEL_FILENAME == "":
     MODEL_FILENAME = "my_model.pth"
+    print("Using default my_model.pth...\n")
+
+choice = input("Edit other params? Type y for yes, else no by default")
+if choice == "y":
+    print("Leave blank for default...")
+    #choice = input("ITERATIONS = 32 * 802 * ")
+    #ITERATIONS = 32 * 802 * 20  # 320128#38400#int(37000*2 + 1)
+    #BATCH_SIZE = 32
+    #NUM_WORKERS = 8
+    #NUM_EPOCHS = 100
+    #STATE_DIM = 8
+    #DIM = 12
+    #LR = 0.0025
+    #SAMPLE_LEN = 32000
+    #SNR_MODE_DB = True
+    #DO_TRAIN_MODEL = False
+    #SNR_RANGE = 10.0
+
+print("Continuing...")
 
 wav_lens = []
 all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))

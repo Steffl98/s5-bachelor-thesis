@@ -42,7 +42,7 @@ data = np.array(data, dtype=float)
 sort_indices = np.argsort(data[:, 0])
 sorted_data = data[sort_indices]
 freq_axis = sorted_data[:, 0]
-yax = sorted_data[:, 1] * 4000.0
+yax = sorted_data[:, 1]# * 4000.0
 #yax = yax / np.mean(yax)
 plt.plot(freq_axis, yax, color='blue', label='Before augmentations')
 
@@ -290,7 +290,8 @@ bins = np.linspace(-10, 10, 11)
 bin_indices = np.digitize(xdata, bins) - 1
 binned_data = [[] for _ in range(10)]
 for i, bin_idx in enumerate(bin_indices):
-    binned_data[bin_idx].append((xdata[i], ydata[i]))
+    if (bin_idx > -1 and bin_idx < 10):
+        binned_data[bin_idx].append((xdata[i], ydata[i]))
 binned_data = [np.array(bin_data) for bin_data in binned_data]
 y_median = []
 y_std_minus = []

@@ -32,6 +32,12 @@ except IndexError:
     print("Attempting to use default path...")
 
 
+choice = input("dB mode? Type y for dB mode, else using snr fac by default.")
+
+if (choice == "y"):
+    USE_DB = True
+else:
+    USE_DB = False
 
 # Read the CSV file
 with open(os.path.join(script_dir, "code", "output", "dataset_spectrogram.csv"), 'r') as csvfile:

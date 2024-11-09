@@ -464,7 +464,17 @@ if MODEL_FILENAME == "":
 choice = input("Edit other params? Type y for yes, else no by default")
 if choice == "y":
     print("Leave blank for default...")
-    #choice = input("ITERATIONS = 32 * 802 * ")
+    choice = input("ITERATIONS = 32 * 802 * ")
+    if (not choice == ""):
+        ITERATIONS = 32 * 802 * int(choice)
+    choice = input("SNR_MODE_DB: [y]/[n]")
+    if (choice == "y"):
+        SNR_MODE_DB = True
+    else if (choice == "n"):
+        SNR_MODE_DB = False
+    choice = input("SNR_RANGE: ")
+    if (not choice == ""):
+        SNR_RANGE = float(choice)
     #ITERATIONS = 32 * 802 * 20  # 320128#38400#int(37000*2 + 1)
     #BATCH_SIZE = 32
     #NUM_WORKERS = 8

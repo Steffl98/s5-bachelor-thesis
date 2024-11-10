@@ -208,7 +208,8 @@ plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
 spl = interpolate.CubicSpline(binxax, y_std_minus)
 xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
-plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.png"))
+plt.legend()
+plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.png"))
 plt.clf()
 
 
@@ -334,6 +335,51 @@ for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     y_median.append(np.median(ydata_new))
     y_std_minus.append(np.percentile(ydata_new, 15.8655253931457))
     y_std_plus.append(np.percentile(ydata_new, 84.1344746068543))
+
+
+
+
+
+
+
+
+
+
+
+
+with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+plt.scatter(xdata, ydata, color='orange', label='Noise reduction', s=0.3)
+"""with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+xax = sorted_data[:, 0]
+yax = sorted_data[:, 1]
+
+spl = interpolate.CubicSpline(xax, yax)
+xnew = np.linspace(0.05, 0.95, num=1001)
+plt.plot(xnew, spl(xnew))"""
+spl = interpolate.CubicSpline(binxax, y_median)
+xnew = np.linspace(-13.5, 13.5, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='Median')
+spl = interpolate.CubicSpline(binxax, y_std_plus)
+xnew = np.linspace(-13.5, 13.5, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
+spl = interpolate.CubicSpline(binxax, y_std_minus)
+xnew = np.linspace(-13.5, 13.5, num=1001)
+plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
+plt.legend()
+plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.png"))
+plt.clf()
+
+
 
 
 

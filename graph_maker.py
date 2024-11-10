@@ -278,13 +278,13 @@ plt.ylabel('Noise reduction in dB')
 
 
 spl = interpolate.CubicSpline(binxax, y_median)
-xnew = np.linspace(0, 1.0, num=1001)
+xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='Median')
 spl = interpolate.CubicSpline(binxax, y_std_plus)
-xnew = np.linspace(0, 1.0, num=1001)
+xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
 spl = interpolate.CubicSpline(binxax, y_std_minus)
-xnew = np.linspace(0, 1.0, num=1001)
+xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
 
 

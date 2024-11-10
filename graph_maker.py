@@ -375,6 +375,7 @@ plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
 spl = interpolate.CubicSpline(binxax, y_std_minus)
 xnew = np.linspace(-13.5, 13.5, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
+plt.xlim(-15.0, 15.0)
 plt.legend()
 plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.png"))
 plt.clf()
@@ -486,7 +487,7 @@ spl = interpolate.CubicSpline(binxax, y_std_minus)
 xnew = np.linspace(-13.5, 13.5, num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
 
-
+plt.xlim(-15.0, 15.0)
 
 #plt.title('Scatter Plot')
 plt.legend()

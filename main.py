@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*20#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*69#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -43,9 +43,9 @@ STATE_DIM = 8
 DIM = 12
 LR = 0.0025
 SAMPLE_LEN = 32000
-SNR_MODE_DB = False
-DO_TRAIN_MODEL = False
-SNR_RANGE = 10.0
+SNR_MODE_DB = True
+DO_TRAIN_MODEL = True
+SNR_RANGE = 15.0
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -470,7 +470,7 @@ if choice == "y":
     choice = input("SNR_MODE_DB: [y]/[n]")
     if (choice == "y"):
         SNR_MODE_DB = True
-    else if (choice == "n"):
+    elif (choice == "n"):
         SNR_MODE_DB = False
     choice = input("SNR_RANGE: ")
     if (not choice == ""):

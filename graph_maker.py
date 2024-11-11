@@ -498,10 +498,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 3.0
 y_median_white = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -517,10 +517,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 3.0
 y_median_pink = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -536,10 +536,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 3.0
 y_median_shot = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -728,10 +728,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_white = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -745,10 +745,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_pink = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -762,10 +762,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_shot = []
-binxax = []
+binxax1 = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax.append(bin_mid)
+    binxax1.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]

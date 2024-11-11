@@ -268,7 +268,6 @@ plt.grid(True)
 #plt.xlim(0, 2000)
 plt.xscale('log', base=10)
 plt.xlim(20, 8000)
-plt.ylim(0, 100000)
 
 with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)

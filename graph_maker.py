@@ -130,6 +130,42 @@ plt.clf()
 
 
 
+
+
+
+
+with open(os.path.join(script_dir, "code", "output", "target_spectrum.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+
+data = np.array(data, dtype=float)
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+freq_axis = sorted_data[:, 0]
+yax = sorted_data[:, 1]
+plt.plot(freq_axis, yax, color='blue', label='Target')
+plt.title("Data Set Audio Spectrum")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.grid(True)
+#plt.xlim(0, 2000)
+plt.xscale('log', base=10)
+plt.xlim(20, 8000)
+plt.ylim(0, 100000)
+
+plt.savefig(os.path.join(script_dir, "code", "output", "target_spectrum.png"))
+plt.clf()
+
+
+
+
+
+
+
+
+
+
+
 with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'r') as csvfile:
     reader = csv.reader(csvfile)
     data = list(reader)

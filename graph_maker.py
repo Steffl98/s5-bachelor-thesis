@@ -75,6 +75,7 @@ plt.grid(True)
 
 plt.xscale('log', base=10)
 plt.xlim(20, 8000)
+plt.legend()
 #plt.ylim(0, 20000)
 
 plt.savefig(os.path.join(script_dir, "code", "output", "augmentations_before_after.png"))

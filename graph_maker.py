@@ -498,10 +498,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 0.1
 y_median_white = []
-binxax1 = []
+binxaxw = []
 for i in np.arange(0.0, (1.0-bin_width), 0.025):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxw.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -517,10 +517,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 0.1
 y_median_pink = []
-binxax1 = []
+binxaxp = []
 for i in np.arange(0.0, (1.0-bin_width), 0.025):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxp.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -536,10 +536,10 @@ ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
 bin_width = 0.1
 y_median_shot = []
-binxax1 = []
+binxaxs = []
 for i in np.arange(0.0, (1.0-bin_width), 0.025):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxs.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -652,13 +652,13 @@ plt.xlabel('SNR fac')
 plt.ylabel('Noise reduction in dB')
 
 
-spl = interpolate.CubicSpline(binxax, y_median_white)
+spl = interpolate.CubicSpline(binxaxw, y_median_white)
 xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='green', label='Median White')
-spl = interpolate.CubicSpline(binxax, y_median_pink)
+spl = interpolate.CubicSpline(binxaxp, y_median_pink)
 xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='blue', label='Median Pink')
-spl = interpolate.CubicSpline(binxax, y_median_shot)
+spl = interpolate.CubicSpline(binxaxs, y_median_shot)
 xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew), color='red', label='Median Shot')
 
@@ -728,10 +728,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_white = []
-binxax1 = []
+binxaxw = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxw.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -745,10 +745,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_pink = []
-binxax1 = []
+binxaxp = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxp.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -762,10 +762,10 @@ xdata = data[:, 0]
 ydata = data[:, 1]
 bin_width = 3.0
 y_median_shot = []
-binxax1 = []
+binxaxs = []
 for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
     bin_mid = i + bin_width / 2.0
-    binxax1.append(bin_mid)
+    binxaxs.append(bin_mid)
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
@@ -908,13 +908,13 @@ for i in range(10):
     y_std_plus.append(np.percentile(bin_data[:, 1], 84.1344746068543))"""
 
 
-spl = interpolate.CubicSpline(binxax, y_median_white)
+spl = interpolate.CubicSpline(binxaxp, y_median_white)
 xnew = np.linspace(-13.5, 13.5, num=1001)
 plt.plot(xnew, spl(xnew), color='green', label='Median White')
-spl = interpolate.CubicSpline(binxax, y_median_pink)
+spl = interpolate.CubicSpline(binxaxw, y_median_pink)
 xnew = np.linspace(-13.5, 13.5, num=1001)
 plt.plot(xnew, spl(xnew), color='blue', label='Median Pink')
-spl = interpolate.CubicSpline(binxax, y_median_shot)
+spl = interpolate.CubicSpline(binxaxs, y_median_shot)
 xnew = np.linspace(-13.5, 13.5, num=1001)
 plt.plot(xnew, spl(xnew), color='red', label='Median Shot')
 

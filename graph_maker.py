@@ -488,6 +488,68 @@ plt.clf()
 
 
 
+with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+ydata = np.power(10, ydata/10.0)
+ydata = ydata / (ydata + 1.0)
+bin_width = 3.0
+y_median_white = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_white.append(np.median(ydata_new))
+
+with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+ydata = np.power(10, ydata/10.0)
+ydata = ydata / (ydata + 1.0)
+bin_width = 3.0
+y_median_pink = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_pink.append(np.median(ydata_new))
+
+with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+ydata = np.power(10, ydata/10.0)
+ydata = ydata / (ydata + 1.0)
+bin_width = 3.0
+y_median_shot = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_shot.append(np.median(ydata_new))
+
+
+
+
+
+
 
 
 
@@ -590,15 +652,15 @@ plt.xlabel('SNR fac')
 plt.ylabel('Noise reduction in dB')
 
 
-spl = interpolate.CubicSpline(binxax, y_median)
+spl = interpolate.CubicSpline(binxax, y_median_white)
 xnew = np.linspace(0.05, 0.95, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='Median')
-spl = interpolate.CubicSpline(binxax, y_std_plus)
+plt.plot(xnew, spl(xnew), color='green', label='Median White')
+spl = interpolate.CubicSpline(binxax, y_median_pink)
 xnew = np.linspace(0.05, 0.95, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
-spl = interpolate.CubicSpline(binxax, y_std_minus)
+plt.plot(xnew, spl(xnew), color='blue', label='Median Pink')
+spl = interpolate.CubicSpline(binxax, y_median_shot)
 xnew = np.linspace(0.05, 0.95, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
+plt.plot(xnew, spl(xnew), color='red', label='Median Shot')
 
 
 
@@ -651,6 +713,63 @@ for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
 
 
 
+
+
+
+
+
+
+
+with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+bin_width = 3.0
+y_median_white = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_white.append(np.median(ydata_new))
+
+with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+bin_width = 3.0
+y_median_pink = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_pink.append(np.median(ydata_new))
+
+with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+data = np.array(data, dtype=float)
+xdata = data[:, 0]
+ydata = data[:, 1]
+bin_width = 3.0
+y_median_shot = []
+binxax = []
+for i in np.arange((0.0 - SNR_RANGE), (SNR_RANGE-bin_width), 0.5):
+    bin_mid = i + bin_width / 2.0
+    binxax.append(bin_mid)
+    mask = (xdata > i) & (xdata < (i+bin_width))
+    xdata_new = xdata[mask]
+    ydata_new = ydata[mask]
+    y_median_shot.append(np.median(ydata_new))
 
 
 
@@ -789,15 +908,15 @@ for i in range(10):
     y_std_plus.append(np.percentile(bin_data[:, 1], 84.1344746068543))"""
 
 
-spl = interpolate.CubicSpline(binxax, y_median)
+spl = interpolate.CubicSpline(binxax, y_median_white)
 xnew = np.linspace(-13.5, 13.5, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='Median')
-spl = interpolate.CubicSpline(binxax, y_std_plus)
+plt.plot(xnew, spl(xnew), color='green', label='Median White')
+spl = interpolate.CubicSpline(binxax, y_median_pink)
 xnew = np.linspace(-13.5, 13.5, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
-spl = interpolate.CubicSpline(binxax, y_std_minus)
+plt.plot(xnew, spl(xnew), color='blue', label='Median Pink')
+spl = interpolate.CubicSpline(binxax, y_median_shot)
 xnew = np.linspace(-13.5, 13.5, num=1001)
-plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
+plt.plot(xnew, spl(xnew), color='red', label='Median Shot')
 
 plt.xlim(-15.0, 15.0)
 

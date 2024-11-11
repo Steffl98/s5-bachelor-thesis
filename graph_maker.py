@@ -141,6 +141,50 @@ plt.clf()
 
 
 
+with open(os.path.join(script_dir, "code", "output", "input_spectrum.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+
+data = np.array(data, dtype=float)
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+freq_axis = sorted_data[:, 0]
+yax1 = sorted_data[:, 1]# * 4000.0
+#plt.plot(freq_axis, yax, color='blue', label='Data before augmentations')
+
+with open(os.path.join(script_dir, "code", "output", "output_spectrum.csv"), 'r') as csvfile:
+    reader = csv.reader(csvfile)
+    data = list(reader)
+
+data = np.array(data, dtype=float)
+sort_indices = np.argsort(data[:, 0])
+sorted_data = data[sort_indices]
+freq_axis = sorted_data[:, 0]
+yax2 = sorted_data[:, 1]
+plt.plot(freq_axis, yax2/yax1, color='orange', label='Transfer function')
+plt.title("Data Set Audio Spectrum")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.grid(True)
+
+plt.xscale('log', base=10)
+plt.yscale('log', base=10)
+plt.xlim(20, 8000)
+#plt.legend()
+plt.savefig(os.path.join(script_dir, "code", "output", "transfer_function.png"))
+plt.clf()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

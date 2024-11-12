@@ -494,8 +494,8 @@ with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"
 data = np.array(data, dtype=float)
 xdata = data[:, 0]
 ydata = data[:, 1]
-ydata = np.power(10, ydata/10.0)
-ydata = ydata / (ydata + 1.0)
+xdata = np.power(10, xdata/10.0)
+xdata = xdata / (xdata + 1.0)
 #file = open(os.path.join(script_dir, "code", "output", "debugg.txt"), 'w')
 #for xyz in ydata:
     #file.write(str(xyz))
@@ -509,7 +509,6 @@ for i in np.arange(0.0, (1.0-bin_width), 0.025):
     mask = (xdata > i) & (xdata < (i+bin_width))
     xdata_new = xdata[mask]
     ydata_new = ydata[mask]
-    print(np.median(ydata_new))
     y_median_white.append(np.median(ydata_new))
 
 with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'r') as csvfile:
@@ -518,8 +517,8 @@ with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv")
 data = np.array(data, dtype=float)
 xdata = data[:, 0]
 ydata = data[:, 1]
-ydata = np.power(10, ydata/10.0)
-ydata = ydata / (ydata + 1.0)
+xdata = np.power(10, xdata/10.0)
+xdata = xdata / (xdata + 1.0)
 bin_width = 0.1
 y_median_pink = []
 binxaxp = []
@@ -537,8 +536,8 @@ with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv")
 data = np.array(data, dtype=float)
 xdata = data[:, 0]
 ydata = data[:, 1]
-ydata = np.power(10, ydata/10.0)
-ydata = ydata / (ydata + 1.0)
+xdata = np.power(10, xdata/10.0)
+xdata = xdata / (xdata + 1.0)
 bin_width = 0.1
 y_median_shot = []
 binxaxs = []

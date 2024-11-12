@@ -494,12 +494,15 @@ with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"
 data = np.array(data, dtype=float)
 xdata = data[:, 0]
 ydata = data[:, 1]
+print(ydata)
 ydata = np.power(10, ydata/10.0)
 ydata = ydata / (ydata + 1.0)
-file = open(os.path.join(script_dir, "code", "output", "debugg.txt"), 'w')
-for xyz in ydata:
-    file.write(str(xyz))
-    file.write("\n")
+print(ydata)
+print("\n")
+#file = open(os.path.join(script_dir, "code", "output", "debugg.txt"), 'w')
+#for xyz in ydata:
+    #file.write(str(xyz))
+    #file.write("\n")
 bin_width = 0.1
 y_median_white = []
 binxaxw = []

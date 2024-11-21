@@ -500,6 +500,7 @@ pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_g
 print("pytorch all params count: ")
 print(pytorch_total_params)
 print("\n")
+torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "model_paramcount.zip"))
 quit()
 print("Finished preparing model.")
 

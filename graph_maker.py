@@ -19,8 +19,8 @@ from scipy import interpolate
 
 
 SNR_RANGE = 15.0
-SCATTER_SIZE = 0.5
-SCATTER_ALPHA = 0.4
+SCATTER_SIZE = 1.5
+SCATTER_ALPHA = 0.35
 
 # STEPS NOT BATCH NO.
 

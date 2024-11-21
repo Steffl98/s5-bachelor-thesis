@@ -489,6 +489,20 @@ if choice == "y":
 
 print("Continuing...")
 
+model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
+paramcount = 0
+for parameter in model.parameters():
+    paramcount = paramcount + 1
+print("Param tensor count : ")
+print(paramcount)
+print("\n")
+pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print("pytorch all params count: ")
+print(pytorch_total_params)
+print("\n")
+quit()
+print("Finished preparing model.")
+
 wav_lens = []
 all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
 for i in all_files:
@@ -537,17 +551,6 @@ plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "power_hist.png"))
 plt.clf()
 
-
-
-model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
-paramcount = 0
-for parameter in model.parameters():
-    paramcount = paramcount + 1
-print("P A R A M    C O U N T : ")
-print(paramcount)
-print("\n")
-quit()
-print("Finished preparing model.")
 
 if DO_TRAIN_MODEL:
     train_model(training_data, val_data, model)

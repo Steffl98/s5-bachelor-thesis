@@ -19,7 +19,8 @@ from scipy import interpolate
 
 
 SNR_RANGE = 15.0
-
+SCATTER_SIZE = 0.5
+SCATTER_ALPHA = 0.4
 
 # STEPS NOT BATCH NO.
 
@@ -643,11 +644,11 @@ for i in range(max_len):
     val_shot_y = shot_y[i] if i < len(shot_y) else None
 
     if i < len(pink_x):
-        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
     if i < len(white_x):
-        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
     if i < len(shot_x):
-        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
 
 #plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
 #plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)
@@ -869,11 +870,11 @@ for i in range(max_len):
     val_shot_y = shot_y[i] if i < len(shot_y) else None
 
     if i < len(pink_x):
-        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_pink_x, val_pink_y, color='blue', label='Pink Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
     if i < len(white_x):
-        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_white_x, val_white_y, color='green', label='White Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
     if i < len(shot_x):
-        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=0.25, alpha=0.35)
+        plt.scatter(val_shot_x, val_shot_y, color='red', label='Shot Noise' if i == 0 else "", s=SCATTER_SIZE, alpha=SCATTER_ALPHA)
 
 #plt.scatter(shot_x, shot_y, color='blue', label='Shot Noise', s=0.3, alpha=0.5)
 #plt.scatter(pink_x, pink_y, color='red', label='Pink Noise', s=0.3, alpha=0.5)

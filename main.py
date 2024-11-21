@@ -540,6 +540,13 @@ plt.clf()
 
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
+paramcount = 0
+for parameter in model.parameters():
+    paramcount = paramcount + 1
+print("P A R A M    C O U N T : ")
+print(paramcount)
+print("\n")
+quit()
 print("Finished preparing model.")
 
 if DO_TRAIN_MODEL:

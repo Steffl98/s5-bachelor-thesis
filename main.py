@@ -35,14 +35,14 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*69#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*6#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 8
 DIM = 12
 LR = 0.0025
-SAMPLE_LEN = 32000
+SAMPLE_LEN = 3200
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
 SNR_RANGE = 15.0
@@ -180,7 +180,7 @@ class AudioDataSet(Dataset):
             (self.SNR_fac).append(cur_fac) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
             (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
-            (self.offs).append(random.randint(0, 16000))
+            (self.offs).append(random.randint(0, 48000))
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
@@ -490,7 +490,7 @@ if choice == "y":
 print("Continuing...")
 
 model = SequenceToSequenceRNN(input_size=1, hidden_size=1).to(device)
-paramcount = 0
+"""paramcount = 0
 for parameter in model.parameters():
     paramcount = paramcount + 1
 print("Param tensor count : ")
@@ -501,7 +501,7 @@ print("pytorch all params count: ")
 print(pytorch_total_params)
 print("\n")
 torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "model_paramcount.zip"))
-quit()
+quit()"""
 print("Finished preparing model.")
 
 wav_lens = []

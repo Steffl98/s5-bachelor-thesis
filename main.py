@@ -42,10 +42,10 @@ NUM_EPOCHS = 100
 STATE_DIM = 8
 DIM = 12
 LR = 0.0025
-SAMPLE_LEN = 1600
+SAMPLE_LEN = 32000#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
-DO_TRAIN_MODEL = False
+DO_TRAIN_MODEL = True
 SNR_RANGE = 10.0
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
@@ -290,8 +290,9 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
-        self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
-        self.BN = nn.BatchNorm1d(SAMPLE_LEN)
+        self.LN = torch.nn.LayerNorm(dim)
+        #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
+        #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
 
@@ -302,7 +303,7 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.l1(x.float())
         res = out.clone()
         #out = self.LN(out)
-        out = self.BN(out)
+        out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
 
@@ -663,7 +664,7 @@ with torch.no_grad():
         it = it + 1
         if (it % 10 == 0):
             print("iteration: ", it)
-        input_chunks = torch.chunk(input, 20, dim=1)  # torch.chunk splits a tensor into chunks
+        """input_chunks = torch.chunk(input, 20, dim=1)  # torch.chunk splits a tensor into chunks
         output_chunks = []
         for i, chunk in enumerate(input_chunks):
             # Check the second dimension of each chunk
@@ -675,7 +676,8 @@ with torch.no_grad():
             # Pass the chunk through the model and collect the output
             output_chunks.append(model(chunk))
         # Concatenate the output chunks along the second dimension
-        output = torch.cat(output_chunks, dim=1)  # Concatenates tensors along dim=1
+        output = torch.cat(output_chunks, dim=1)  # Concatenates tensors along dim=1"""
+        output = model(input)
 
         if (cum_target_flag == 0):
             cum_target_flag = 1

@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*9#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*1#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -90,6 +90,11 @@ def resample(data, ratio, offset=0, max_len=0):
         if (i >= max_len): # C U L L
             break
         if (indecks < old_num):
+            if not (indecks < len(data)):
+                print("WTF")
+                print("indecks", indecks)
+                print("len", len(data))
+                print("old_num", old_num)
             xyz.append(data[indecks])
     while (len(xyz) < max_len): # P A D
         xyz.append(int(0))

@@ -90,7 +90,7 @@ def resample(data, ratio, offset=0, max_len=0):
         indecks = int(i * ratio) + offset
         if (i >= max_len): # C U L L
             break
-        if (indecks < old_num):
+        if ((indecks < old_num) and (indecks > -1)):
             if not (indecks < len(data)):
                 print("WTF")
                 print("indecks", indecks)
@@ -110,7 +110,7 @@ def resample_no_cap(data, ratio):
     new_num = int(old_num / ratio)
     for i in range(new_num):
         indecks = int(i * ratio)
-        if (indecks < old_num):
+        if ((indecks < old_num) and (indecks > -1)):
             xyz.append(data[indecks])
     return xyz
 
@@ -125,7 +125,7 @@ def resample2(data, ratio, leng):
         indecks = int(i * ratio)
         if (i >= leng): # C U L L
             break
-        if (indecks < old_num):
+        if ((indecks < old_num) and (indecks > -1)):
             xyz.append(data[indecks])
             app_cnt = app_cnt + 1
     while (len(xyz) < leng): # P A D

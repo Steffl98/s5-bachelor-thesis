@@ -101,6 +101,19 @@ def resample(data, ratio, offset=0, max_len=0):
     return xyz
 
 
+
+
+def resample_no_cap(data, ratio):
+    xyz = []
+    old_num = len(data)
+    new_num = int(old_num / ratio)
+    for i in range(new_num):
+        indecks = int(i * ratio)
+        if (indecks < old_num):
+            xyz.append(data[indecks])
+    return xyz
+
+
 def resample2(data, ratio, leng):
     #offset = 0
     xyz = []
@@ -121,9 +134,10 @@ def resample2(data, ratio, leng):
 
 def add_noise(data, noise, fac):
     samples = len(data)
+    nsamples = len(noise)
     noize = []
     for i in range(samples):
-        noize.append((fac*data[i] + (1.0 - fac)*noise[i % samples]))
+        noize.append((fac*data[i] + (1.0 - fac)*noise[i % nsamples]))
     return noize
 
 def amplify(data, fac):
@@ -161,6 +175,7 @@ class AudioDataSet(Dataset):
         #self.wavs_test = []
         #self.wavs_val = []
         cntrr = 0
+        voice_rms = 0.0
         for item in files:
             cntrr = cntrr + 1
             if (cntrr % 32 == 0):
@@ -168,7 +183,10 @@ class AudioDataSet(Dataset):
                 if (len(percstr) > 4):
                     percstr = percstr[0:4]
                 print("Loading wavs: ", percstr, "%")
-            (self.wavs).append(read_wav(item))
+            cur_item = read_wav(item)
+            (self.wavs).append(cur_item)
+            voice_rms = voice_rms + torch.sqrt(torch.mean(torch.tensor(cur_item) ** 2))
+        voice_rms = voice_rms / cntrr
         print("Done loading wavs.")
         #random.shuffle(self.wavs)
         #self.wavs_test = self.wavs[:200]
@@ -179,6 +197,19 @@ class AudioDataSet(Dataset):
         self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
         self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
         self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
+        self.pink_noise = resample_no_cap(self.pink_noise, 44.1/16.0)
+        self.shot_noise = resample_no_cap(self.shot_noise, 44.1 / 16.0)
+        self.trans_noise = resample_no_cap(self.trans_noise, 44.1 / 16.0)
+        self.white_noise = resample_no_cap(self.white_noise, 44.1 / 16.0)
+        pink_rms = torch.sqrt(torch.mean(torch.tensor(self.pink_noise) ** 2))
+        shot_rms = torch.sqrt(torch.mean(torch.tensor(self.shot_noise) ** 2))
+        trans_rms = torch.sqrt(torch.mean(torch.tensor(self.trans_noise) ** 2))
+        white_rms = torch.sqrt(torch.mean(torch.tensor(self.white_noise) ** 2))
+        self.pink_noise = amplify(self.pink_noise, voice_rms/pink_rms)
+        self.shot_noise = amplify(self.shot_noise, voice_rms / shot_rms)
+        self.trans_noise = amplify(self.trans_noise, voice_rms / trans_rms)
+        self.white_noise = amplify(self.white_noise, voice_rms / white_rms)
+
         self.SNR_fac = []
         self.noise_choice = []
         self.fshift = []

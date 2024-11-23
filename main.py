@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*32#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*20#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -581,17 +581,17 @@ create_dataset_spectrogram()
 #quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
-print(len(files))
-print(len(val_files))
-print(len(test_files))
-quit()
+#print(len(files))
+#print(len(val_files))
+#print(len(test_files))
+#quit()
 training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
 #test_data = AudioDataSet(test_files)
 print("Finished preparing training data.")
 
 
-
+"""
 power_list = []
 
 zeros = [0] * SAMPLE_LEN
@@ -614,7 +614,7 @@ plt.title("Histogram of Audio files avg. power")
 plt.xlabel("dB")
 plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "power_hist.png"))
-plt.clf()
+plt.clf()"""
 
 print("Finished plots....")
 

@@ -303,7 +303,7 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.l1(x.float())
         res = out.clone()
         #out = self.LN(out)
-        out = self.LN(out)
+        # out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
 

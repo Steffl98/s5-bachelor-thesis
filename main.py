@@ -45,8 +45,8 @@ LR = 0.0025
 SAMPLE_LEN = 1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
-DO_TRAIN_MODEL = True
-SNR_RANGE = 15.0
+DO_TRAIN_MODEL = False 
+SNR_RANGE = 10.0
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -175,6 +175,7 @@ class AudioDataSet(Dataset):
         self.wavs = []
         #self.wavs_test = []
         #self.wavs_val = []
+        self.RMS = 0.0
         cntrr = 0
         voice_rms = 0.0
         for item in files:
@@ -188,6 +189,7 @@ class AudioDataSet(Dataset):
             (self.wavs).append(cur_item)
             voice_rms = voice_rms + torch.sqrt(torch.mean(torch.tensor(cur_item) ** 2))
         voice_rms = voice_rms / cntrr
+        self.RMS = voice_rms
         print("Done loading wavs.")
         #random.shuffle(self.wavs)
         #self.wavs_test = self.wavs[:200]
@@ -251,6 +253,8 @@ class AudioDataSet(Dataset):
         return self.noise_choice[x]
     def set_long_mode(self, boul):
         self.long_mode = boul
+    def get_rms(self):
+        return self.RMS
     #def set_mode(self, mode):
         #self.mode = mode
 
@@ -388,19 +392,25 @@ def train_model(tr_data, val_data, tr_model):
                     if (nsamples > 100):
                         break
                     outputs = tr_model(inputs)
-                    noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
+                    # noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
+                    remainder = (outputs - labels)
+                    remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
+                    remainder_db = 10.0 * math.log10(remainder_rms)
                     l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())
                     SNR_fac = val_data.get_SNR_fac(nsamples - 1)
                     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
                     noise_db = 0.0
                     noice = val_data.get_noise_choice(nsamples - 1)
-                    if (noice == 1):
+                    # torch.sqrt(torch.mean(torch.tensor(self.pink_noise) ** 2))
+                    noise_rms = val_data.get_rms()
+                    noise_db = 10.0 * math.log10(noise_rms)
+                    """if (noice == 1):
                         noise_db = -15.9789
                     if (noice == 2):
                         noise_db = -7.77903
                     if (noice == 3):
-                        noise_db = -15.6357
-                    val_loss = val_loss + (noise_remaining - noise_db - fac_noise_red)
+                        noise_db = -15.6357"""
+                    val_loss = val_loss + (remainder_db - noise_db - fac_noise_red)
                     val_l1_loss = val_l1_loss + (l1_noise_remaining - noise_db - fac_noise_red)
             val_loss /= 100.0  # /= len(val_dataloader.dataset)
             val_l1_loss /= 100.0
@@ -875,11 +885,11 @@ with torch.no_grad():
 
 
 
-
+            """
             #fstat.close()
             fig = go.Figure(data=go.Scatter(x=plot1x, y=plot1y, mode='markers'))
             fig.update_layout(title="Scatter plot", xaxis_title="SNR fac", yaxis_title="noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot.png"), format="png")"""
             data = np.vstack((plot1x, plot1y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_fac.csv"), 'w',
@@ -887,9 +897,9 @@ with torch.no_grad():
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
+            """fig = go.Figure(data=go.Scatter(x=plot2x, y=plot2y, mode='markers'))
             fig.update_layout(title="Scatter plot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot2.png"), format="png")"""
             data = np.vstack((plot2x, plot2y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.csv"), 'w',
@@ -899,20 +909,23 @@ with torch.no_grad():
 
             for i in range(10):
                 plot3x.append((i/10.0) + 0.05)
-                plot3y.append(percentiles_val[i] / percentiles_count[i])
+                if (percentiles_count[i] != 0):
+                    plot3y.append(percentiles_val[i] / percentiles_count[i])
+                else:
+                    plot3y.append(0.0)
 
-            fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
+            """fig = go.Figure(data=go.Scatter(x=plot3x, y=plot3y, mode='markers'))
             fig.update_layout(title="Scatter plot", xaxis_title="avg. SNR fac", yaxis_title="avg. noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot3.png"), format="png")"""
             data = np.vstack((plot3x, plot3y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_red_vs_avg_SNR_fac.csv"), 'w', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
+            """fig = go.Figure(data=go.Scatter(x=plot4x, y=plot4y, mode='markers'))
             fig.update_layout(title="Noise Type 1: Pink", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot4.png"), format="png")"""
             data = np.vstack((plot4x, plot4y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_pink_vs_SNR_dB.csv"), 'w',
@@ -920,9 +933,9 @@ with torch.no_grad():
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
+            """fig = go.Figure(data=go.Scatter(x=plot5x, y=plot5y, mode='markers'))
             fig.update_layout(title="Noise Type 2: White", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot5.png"), format="png")"""
             data = np.vstack((plot5x, plot5y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_white_vs_SNR_dB.csv"), 'w',
@@ -930,9 +943,9 @@ with torch.no_grad():
                 csv_writer = csv.writer(csvfile)
                 csv_writer.writerows(data)
 
-            fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
+            """fig = go.Figure(data=go.Scatter(x=plot6x, y=plot6y, mode='markers'))
             fig.update_layout(title="Noise Type 3: Shot", xaxis_title="SNR fac in dB", yaxis_title="noise reduction in dB")
-            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")
+            pio.write_image(fig, os.path.join(script_dir, "code", "output", "plot6.png"), format="png")"""
             data = np.vstack((plot6x, plot6y))
             data = data.T
             with open(os.path.join(script_dir, "code", "output", "noise_shot_vs_SNR_dB.csv"), 'w',

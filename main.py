@@ -83,8 +83,8 @@ def resample(data, ratio, offset=0, max_len=0):
     xyz = []
     old_num = len(data)
     new_num = int(old_num / ratio)
-    max_offset = old_num - max_len * ratio
-    offset = offset % max_offset
+    max_offset = int(old_num) - int(max_len * ratio)
+    offset = int(offset % max_offset)
     for i in range(new_num):
         indecks = int(i * ratio) + offset
         if (i >= max_len): # C U L L

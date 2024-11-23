@@ -353,7 +353,7 @@ def train_model(tr_data, val_data, tr_model):
     tr_model.train()
     for batch_idx, (data, target) in enumerate(train_dataloader):
         start_time = time.time()
-        if (batch_idx % 400 == 0):
+        if (batch_idx % 40 == 0):
             print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
@@ -580,7 +580,7 @@ plt.clf()
 create_dataset_spectrogram()
 #quit()
 
-files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 10, 800)
 training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
 #test_data = AudioDataSet(test_files)
@@ -612,8 +612,11 @@ plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "power_hist.png"))
 plt.clf()
 
+print("Finished plots....")
+
 
 if DO_TRAIN_MODEL:
+    print("Starting training model:")
     train_model(training_data, val_data, model)
     torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", MODEL_FILENAME))
 else:

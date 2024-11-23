@@ -43,6 +43,7 @@ STATE_DIM = 8
 DIM = 12
 LR = 0.0025
 SAMPLE_LEN = 1600
+SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
 SNR_RANGE = 15.0
@@ -618,7 +619,7 @@ val_data.set_long_mode(True)
 test_dataloader = DataLoader(val_data, batch_size=1, shuffle=False)
 print("Initialized data loader.")
 
-zeros = [0] * 32000#SAMPLE_LEN
+zeros = [0] * SAMPLE_LEN_LONG#SAMPLE_LEN
 zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
 zeros = zeros.to(device, non_blocking=True)
 idx = 0
@@ -685,17 +686,17 @@ with torch.no_grad():
         t_list = (torch.flatten(target)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_target_cum = fft_target_cum + np.abs(fft_result) / float(SAMPLE_LEN)
+        fft_target_cum = fft_target_cum + np.abs(fft_result) / float(SAMPLE_LEN_LONG)
 
         t_list = (torch.flatten(output)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_output_cum = fft_output_cum + np.abs(fft_result) / float(SAMPLE_LEN)
+        fft_output_cum = fft_output_cum + np.abs(fft_result) / float(SAMPLE_LEN_LONG)
 
         t_list = (torch.flatten(input)).tolist()
         audio_data_np = np.array(t_list)
         fft_result = np.fft.fft(audio_data_np)
-        fft_input_cum = fft_input_cum + np.abs(fft_result) / float(SAMPLE_LEN)
+        fft_input_cum = fft_input_cum + np.abs(fft_result) / float(SAMPLE_LEN_LONG)
 
         if (it > 400):
 
@@ -704,7 +705,7 @@ with torch.no_grad():
 
 
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN_LONG, 1.0 / sampling_rate)
             """plt.plot(freq_axis, np.abs(fft_input_cum), color='red', label='After augmentations')
             plt.title("Input Audio Spectrum")
             plt.xlabel("Frequency (Hz)")
@@ -727,7 +728,7 @@ with torch.no_grad():
                 csv_writer.writerows(data)
 
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN_LONG, 1.0 / sampling_rate)
             """plt.plot(freq_axis, np.abs(fft_target_cum))
             plt.title("Target Audio Spectrum")
             plt.xlabel("Frequency (Hz)")
@@ -749,7 +750,7 @@ with torch.no_grad():
                 csv_writer.writerows(data)
 
             sampling_rate = 16000.0
-            freq_axis = np.fft.fftfreq(SAMPLE_LEN, 1.0 / sampling_rate)
+            freq_axis = np.fft.fftfreq(SAMPLE_LEN_LONG, 1.0 / sampling_rate)
             """plt.plot(freq_axis, np.abs(fft_output_cum))
             plt.title("Output Audio Spectrum")
             plt.xlabel("Frequency (Hz)")

@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*802*69#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*802*9#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -74,18 +74,24 @@ def read_wav(filename): # max len after resampling = 982988
             values.append(value)
     return values
 
-def resample(data, ratio, offset=0):
+def resample(data, ratio, offset=0, max_len=0):
+    # len(data) > SAMPLE_LEN * ratio + offset
+    # len(data) - SAMPLE_LEN*ratio = max_offset
     #offset = 0
+    if (max_len == 0):
+        max_len = SAMPLE_LEN
     xyz = []
     old_num = len(data)
     new_num = int(old_num / ratio)
+    max_offset = old_num - max_len * ratio
+    offset = offset % max_offset
     for i in range(new_num):
         indecks = int(i * ratio) + offset
-        if (i >= SAMPLE_LEN): # C U L L
+        if (i >= max_len): # C U L L
             break
         if (indecks < old_num):
             xyz.append(data[indecks])
-    while (len(xyz) < SAMPLE_LEN): # P A D
+    while (len(xyz) < max_len): # P A D
         xyz.append(int(0))
     return xyz
 
@@ -144,6 +150,7 @@ class AudioDataSet(Dataset):
     def __init__(self, files, transform=None, target_transform=None):
         #self.dir = dir
         self.files = files#list_files(dir)
+        self.long_mode = False
         #self.mode = mode
         self.wavs = []
         #self.wavs_test = []
@@ -180,7 +187,7 @@ class AudioDataSet(Dataset):
             (self.SNR_fac).append(cur_fac) # formerly 0.75 - 1
             (self.noise_choice).append(random.randint(1, 3))
             (self.fshift).append(pow(1.2, random.uniform(-1, 1)))
-            (self.offs).append(random.randint(0, 48000))
+            (self.offs).append(random.randint(0, 1000000))
     def __len__(self):
         return ITERATIONS
     def __getitem__(self, idx):
@@ -188,7 +195,10 @@ class AudioDataSet(Dataset):
         fshift = self.fshift[idx]
         noice = self.noise_choice[idx]
 
-        label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+        if (self.long_mode == False):
+            label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+        else:
+            label_data = resample(self.wavs[idx % len(self.wavs)], fshift * 44.1 / 16.0, offs, max_len=32000)
 
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
@@ -202,6 +212,8 @@ class AudioDataSet(Dataset):
         return self.SNR_fac[x]
     def get_noise_choice(self, x):
         return self.noise_choice[x]
+    def set_long_mode(self, boul):
+        self.long_mode = boul
     #def set_mode(self, mode):
         #self.mode = mode
 
@@ -566,10 +578,11 @@ del training_data
 it = 0
 #testing_data = copy.deepcopy(training_data)
 #training_data.mode(2)
+val_data.set_long_mode(True)
 test_dataloader = DataLoader(val_data, batch_size=1, shuffle=False)
 print("Initialized data loader.")
 
-zeros = [0] * SAMPLE_LEN
+zeros = [0] * 32000#SAMPLE_LEN
 zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
 zeros = zeros.to(device, non_blocking=True)
 idx = 0
@@ -601,7 +614,18 @@ with torch.no_grad():
     for input, target in test_dataloader:
         input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
         it = it + 1
-        output = model(input)
+        input_chunks = np.split(input, 20, axis=1)
+        if (input_chunks.shape[1] != SAMPLE_LEN):
+            print("CRITICAL ERROR: input_chunks of wrong dimension")
+            print(input_chunks.shape)
+            print("Should be:")
+            print(SAMPLE_LEN)
+            quit()
+        output_chunks = []
+        for i in range(20):
+            output_chunks.append( model(input_chunks[i]) )
+        output = np.concatenate(output_chunks, axis=1)
+
         if (cum_target_flag == 0):
             cum_target_flag = 1
             cum_target = target

@@ -615,14 +615,14 @@ with torch.no_grad():
         input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
         it = it + 1
         input_chunks = np.split(input, 20, axis=1)
-        if (input_chunks.shape[1] != SAMPLE_LEN):
-            print("CRITICAL ERROR: input_chunks of wrong dimension")
-            print(input_chunks.shape)
-            print("Should be:")
-            print(SAMPLE_LEN)
-            quit()
         output_chunks = []
         for i in range(20):
+            if ((input_chunks[i]).shape[1] != SAMPLE_LEN):
+                print("CRITICAL ERROR: input_chunks of wrong dimension")
+                print(input_chunks.shape)
+                print("Should be:")
+                print(SAMPLE_LEN)
+                quit()
             output_chunks.append( model(input_chunks[i]) )
         output = np.concatenate(output_chunks, axis=1)
 

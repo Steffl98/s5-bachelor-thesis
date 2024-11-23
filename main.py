@@ -607,9 +607,9 @@ df = pd.DataFrame(columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB'
 cum_target_flag = 0
 cum_output_flag = 0
 cum_input_flag = 0
-fft_target_cum = np.array([0] * SAMPLE_LEN)
-fft_input_cum = np.array([0] * SAMPLE_LEN)
-fft_output_cum = np.array([0] * SAMPLE_LEN)
+fft_target_cum = np.array([0] * 32000)
+fft_input_cum = np.array([0] * 32000)
+fft_output_cum = np.array([0] * 32000)
 with torch.no_grad():
     for input, target in test_dataloader:
         input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)

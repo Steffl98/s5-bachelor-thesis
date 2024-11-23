@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*1#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*32#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -302,7 +302,7 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = self.l1(x.float())
         res = out.clone()
-        #out = self.LN(out)
+        out = self.LN(out)
         # out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
@@ -580,7 +580,7 @@ plt.clf()
 create_dataset_spectrogram()
 #quit()
 
-files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 10, 800)
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 training_data = AudioDataSet(files)
 val_data = AudioDataSet(val_files)
 #test_data = AudioDataSet(test_files)
@@ -961,7 +961,7 @@ with torch.no_grad():
 
             df.to_csv(os.path.join(script_dir, "code", "output", "validation_data.csv"), index=False)
             break
-        noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
+        #noise_remaining = 10.0 * math.log10(loss_func((output - target), zeros).item())
         output_db = 10.0 * math.log10(loss_func((output), zeros).item())
         target_db = 10.0 * math.log10(loss_func((target), zeros).item())
         SNR_fac = val_data.get_SNR_fac(idx)
@@ -970,18 +970,26 @@ with torch.no_grad():
         fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
         noise_db = 0.0
         noice = val_data.get_noise_choice(idx)
+
+        remainder = (outputs - labels)
+        remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
+        remainder_db = 10.0 * math.log10(remainder_rms)
+        noise_rms = val_data.get_rms()
+        noise_db = 10.0 * math.log10(noise_rms)
+
+
         if (noice == 1):
-            noise_db = -15.9789
+            #noise_db = -15.9789
             plot4x.append(SNR_db)
-            plot4y.append(noise_remaining - noise_db - fac_noise_red)
+            plot4y.append(remainder_db - noise_db - fac_noise_red)
         if (noice == 2):
-            noise_db = -7.77903
+            #noise_db = -7.77903
             plot5x.append(SNR_db)
-            plot5y.append(noise_remaining - noise_db - fac_noise_red)
+            plot5y.append(remainder_db - noise_db - fac_noise_red)
         if (noice == 3):
-            noise_db = -15.6357
+            #noise_db = -15.6357
             plot6x.append(SNR_db)
-            plot6y.append(noise_remaining - noise_db - fac_noise_red)
+            plot6y.append(remainder_db - noise_db - fac_noise_red)
         plot1x.append(SNR_fac)
         plot1y.append(noise_remaining - noise_db - fac_noise_red)
         plot2x.append(SNR_db)

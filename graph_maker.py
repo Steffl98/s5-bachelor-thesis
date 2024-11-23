@@ -18,7 +18,7 @@ from scipy import interpolate
 
 
 
-SNR_RANGE = 15.0
+SNR_RANGE = 10.0
 SCATTER_SIZE = 1.5
 SCATTER_ALPHA = 0.35
 
@@ -803,15 +803,15 @@ spl = interpolate.CubicSpline(xax, yax)
 xnew = np.linspace(0.05, 0.95, num=1001)
 plt.plot(xnew, spl(xnew))"""
 spl = interpolate.CubicSpline(binxax, y_median)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='Median')
 spl = interpolate.CubicSpline(binxax, y_std_plus)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='+1 Standard Deviation')
 spl = interpolate.CubicSpline(binxax, y_std_minus)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='black', label='-1 Standard Deviation')
-plt.xlim(-15.0, 15.0)
+plt.xlim(-SNR_RANGE, SNR_RANGE)
 plt.legend()
 plt.savefig(os.path.join(script_dir, "code", "output", "noise_red_vs_SNR_dB.png"))
 plt.clf()
@@ -914,16 +914,16 @@ for i in range(10):
 
 
 spl = interpolate.CubicSpline(binxaxp, y_median_white)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='green', label='Median White')
 spl = interpolate.CubicSpline(binxaxw, y_median_pink)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='blue', label='Median Pink')
 spl = interpolate.CubicSpline(binxaxs, y_median_shot)
-xnew = np.linspace(-13.5, 13.5, num=1001)
+xnew = np.linspace(-(SNR_RANGE-1.5), (SNR_RANGE-1.5), num=1001)
 plt.plot(xnew, spl(xnew), color='red', label='Median Shot')
 
-plt.xlim(-15.0, 15.0)
+plt.xlim(-SNR_RANGE, SNR_RANGE)
 
 #plt.title('Scatter Plot')
 plt.legend()

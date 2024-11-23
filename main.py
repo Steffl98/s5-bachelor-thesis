@@ -45,7 +45,7 @@ LR = 0.0025
 SAMPLE_LEN = 1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
-DO_TRAIN_MODEL = False 
+DO_TRAIN_MODEL = False
 SNR_RANGE = 10.0
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):

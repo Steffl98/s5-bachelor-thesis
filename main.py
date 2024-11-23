@@ -614,17 +614,19 @@ with torch.no_grad():
     for input, target in test_dataloader:
         input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
         it = it + 1
-        input_chunks = np.split(input, 20, axis=1)
+        input_chunks = torch.chunk(input, 20, dim=1)  # torch.chunk splits a tensor into chunks
         output_chunks = []
-        for i in range(20):
-            if ((input_chunks[i]).shape[1] != SAMPLE_LEN):
+        for i, chunk in enumerate(input_chunks):
+            # Check the second dimension of each chunk
+            if chunk.shape[1] != SAMPLE_LEN:
                 print("CRITICAL ERROR: input_chunks of wrong dimension")
-                print(input_chunks.shape)
-                print("Should be:")
-                print(SAMPLE_LEN)
+                print(f"Chunk {i} shape: {chunk.shape}")
+                print(f"Should be: (batch_size, {SAMPLE_LEN}, ...)")
                 quit()
-            output_chunks.append( model(input_chunks[i]) )
-        output = np.concatenate(output_chunks, axis=1)
+            # Pass the chunk through the model and collect the output
+            output_chunks.append(model(chunk))
+        # Concatenate the output chunks along the second dimension
+        output = torch.cat(output_chunks, dim=1)  # Concatenates tensors along dim=1
 
         if (cum_target_flag == 0):
             cum_target_flag = 1

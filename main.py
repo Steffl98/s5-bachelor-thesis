@@ -650,6 +650,8 @@ with torch.no_grad():
     for input, target in test_dataloader:
         input, target = input.to(device, non_blocking=True), target.to(device, non_blocking=True)
         it = it + 1
+        if (it % 10 == 0):
+            print("iteration: ", it)
         input_chunks = torch.chunk(input, 20, dim=1)  # torch.chunk splits a tensor into chunks
         output_chunks = []
         for i, chunk in enumerate(input_chunks):
@@ -695,7 +697,7 @@ with torch.no_grad():
         fft_result = np.fft.fft(audio_data_np)
         fft_input_cum = fft_input_cum + np.abs(fft_result) / float(SAMPLE_LEN)
 
-        if (it > 4000):
+        if (it > 400):
 
             if (it % 200 == 0):
                 print("Validation progress: ", it /  40, "%")

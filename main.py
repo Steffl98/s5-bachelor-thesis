@@ -991,15 +991,15 @@ with torch.no_grad():
             plot6x.append(SNR_db)
             plot6y.append(remainder_db - noise_db - fac_noise_red)
         plot1x.append(SNR_fac)
-        plot1y.append(noise_remaining - noise_db - fac_noise_red)
+        plot1y.append(remainder_db - noise_db - fac_noise_red)
         plot2x.append(SNR_db)
-        plot2y.append(noise_remaining - noise_db - fac_noise_red)
+        plot2y.append(remainder_db - noise_db - fac_noise_red)
 
         prc = math.floor(SNR_fac * 9.999999)  # tmp is int and ranges from 0 to 9
         percentiles_count[prc] = percentiles_count[prc] + 1
-        percentiles_val[prc] = percentiles_val[prc] + (noise_remaining - noise_db - fac_noise_red)
+        percentiles_val[prc] = percentiles_val[prc] + (remainder_db - noise_db - fac_noise_red)
 
-        pdrow=pd.DataFrame([[SNR_fac, SNR_db, noise_remaining,target_db,output_db,noice]],
+        pdrow=pd.DataFrame([[SNR_fac, SNR_db, remainder_db,target_db,output_db,noice]],
                            columns=['SNR fac','SNR / dB','Noise remaining dB','Target dB','Output dB','Noise Type'])
         #df = df.append(pdrow, ignore_index=True)
         df = pd.concat([df, pdrow])

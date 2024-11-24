@@ -291,7 +291,7 @@ class SequenceToSequenceRNN(nn.Module):
         state_dim = STATE_DIM
         bidir = False
         self.s5 = s5.S5(dim, state_dim)
-        self.s5b = s5.S5(dim, state_dim)
+        #self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
         self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
         #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
@@ -308,12 +308,12 @@ class SequenceToSequenceRNN(nn.Module):
         #out = self.LN(out)
         # out = self.LN(out)
         out = self.s5(out)
-        out = self.tanh(out) + res
+        out = self.relu(out) + res
 
-        res = out.clone()
+        #res = out.clone()
 
-        out = self.s5b(out)
-        out = self.tanh(out) + res
+        #out = self.s5b(out)
+        #out = self.relu(out) + res
         out = self.s5c(out)
         out = self.l2(out)
         return out

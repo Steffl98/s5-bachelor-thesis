@@ -596,7 +596,7 @@ plt.clf()
 create_dataset_spectrogram()
 #quit()
 
-files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 10, 800)
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
 #print(len(files))
 #print(len(val_files))
 #print(len(test_files))

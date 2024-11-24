@@ -308,12 +308,12 @@ class SequenceToSequenceRNN(nn.Module):
         #out = self.LN(out)
         # out = self.LN(out)
         out = self.s5(out)
-        out = self.relu(out) + res
+        out = self.tanh(out) + res
 
         res = out.clone()
 
         out = self.s5b(out)
-        out = self.relu(out) + res
+        out = self.tanh(out) + res
         out = self.s5c(out)
         out = self.l2(out)
         return out

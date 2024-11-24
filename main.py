@@ -42,7 +42,7 @@ NUM_EPOCHS = 100
 STATE_DIM = 32#8
 DIM = 8#12
 LR = 0.0025
-SAMPLE_LEN = 32000#1600
+SAMPLE_LEN = 1600#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
@@ -75,7 +75,7 @@ def read_wav(filename): # max len after resampling = 982988
             values.append(value)
     return values
 
-def resample(data, ratio, offset=0, max_len=0):
+def resample(data, ratio, offset=0, max_len=SAMPLE_LEN):
     # len(data) > SAMPLE_LEN * ratio + offset
     # len(data) - SAMPLE_LEN*ratio = max_offset
     #offset = 0
@@ -85,7 +85,10 @@ def resample(data, ratio, offset=0, max_len=0):
     old_num = len(data)
     new_num = int(old_num / ratio)
     max_offset = int(old_num) - int(max_len * ratio)
-    offset = int(offset % max_offset)
+    if (max_offset > 0):
+        offset = int(offset % max_offset)
+    else:
+        offset = 0
     for i in range(new_num):
         indecks = int(i * ratio) + offset
         if (i >= max_len): # C U L L

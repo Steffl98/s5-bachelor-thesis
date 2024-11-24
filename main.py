@@ -389,14 +389,15 @@ def train_model(tr_data, val_data, tr_model):
             val_loss = 0.0
             val_l1_loss = 0.0
             nsamples = 0
-            zeros = [0] * SAMPLE_LEN
-            zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
-            zeros = zeros.to(device, non_blocking=True)
+            #zeros = [0] * SAMPLE_LEN
+            #zeros = ((torch.tensor(zeros)).unsqueeze(1)).unsqueeze(0)
+            #zeros = zeros.to(device, non_blocking=True)
             with torch.no_grad():
                 for inputs, labels in val_dataloader:
                     inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
                     new_tensor = torch.zeros_like(inputs)
                     inputs = torch.cat((inputs, new_tensor), dim=1)
+                    new_tensor = torch.zeros_like(labels)
                     labels = torch.cat((labels, new_tensor), dim=1)
                     nsamples = nsamples + 1
                     if (nsamples > 100):
@@ -406,7 +407,7 @@ def train_model(tr_data, val_data, tr_model):
                     remainder = (outputs - labels)
                     remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
                     remainder_db = 10.0 * math.log10(remainder_rms)
-                    l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())
+                    #l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())
                     SNR_fac = val_data.get_SNR_fac(nsamples - 1)
                     fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
                     noise_db = 0.0
@@ -589,7 +590,7 @@ plt.clf()
 create_dataset_spectrogram()
 #quit()
 
-files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)
+files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 10, 800)
 #print(len(files))
 #print(len(val_files))
 #print(len(test_files))

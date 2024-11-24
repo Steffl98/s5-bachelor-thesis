@@ -35,12 +35,12 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*20#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*40#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 32#8
-DIM = 32#12
+DIM = 16#12
 LR = 0.0025
 SAMPLE_LEN = 1600#1600
 SAMPLE_LEN_LONG = 32000
@@ -293,7 +293,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
-        self.LN = torch.nn.LayerNorm(dim)
+        self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
         #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()

@@ -240,7 +240,7 @@ class AudioDataSet(Dataset):
         if (self.long_mode == False):
             label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
         else:
-            label_data = resample(self.wavs[idx % len(self.wavs)], fshift * 44.1 / 16.0, offs, max_len=32000)
+            label_data = resample(self.wavs[idx % len(self.wavs)], fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
 
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
@@ -978,7 +978,7 @@ with torch.no_grad():
         noise_db = 0.0
         noice = val_data.get_noise_choice(idx)
 
-        remainder = (outputs - labels)
+        remainder = (output - target)
         remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
         remainder_db = 10.0 * math.log10(remainder_rms)
         noise_rms = val_data.get_rms()

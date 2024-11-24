@@ -422,7 +422,7 @@ def train_model(tr_data, val_data, tr_model):
                     if (noice == 3):
                         noise_db = -15.6357"""
                     val_loss = val_loss + (remainder_db - noise_db - fac_noise_red)
-                    val_l1_loss = val_l1_loss + (l1_noise_remaining - noise_db - fac_noise_red)
+                    #val_l1_loss = val_l1_loss + (l1_noise_remaining - noise_db - fac_noise_red)
             val_loss /= 100.0  # /= len(val_dataloader.dataset)
             val_l1_loss /= 100.0
             print(f"Noise reduction in dB: {val_loss:.4f}", f"L1 Noise reduction in dB: {val_l1_loss:.4f}")

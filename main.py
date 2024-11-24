@@ -40,7 +40,7 @@ BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 32#8
-DIM = 8#12
+DIM = 24#12
 LR = 0.0025
 SAMPLE_LEN = 1600#1600
 SAMPLE_LEN_LONG = 32000
@@ -360,9 +360,15 @@ def train_model(tr_data, val_data, tr_model):
             print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
-        new_tensor = torch.zeros_like(data)
-        data = torch.cat((data, new_tensor), dim=1)
-        target = torch.cat((target, new_tensor), dim=1)
+        random_integer = random.randint(1, 15)
+        if (random_integer > 7):
+            new_tensor = torch.zeros_like(data)
+            data = torch.cat((data, new_tensor), dim=1)
+            target = torch.cat((target, new_tensor), dim=1)
+            if (random_integer == 15):
+                for i in range(9):
+                    data = torch.cat((data, new_tensor), dim=1)
+                    target = torch.cat((target, new_tensor), dim=1)
         output = tr_model(data)
         loss = loss_func(output, target)
         with torch.no_grad():

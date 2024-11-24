@@ -305,7 +305,7 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = self.l1(x.float())
         res = out.clone()
-        out = self.LN(out)
+        #out = self.LN(out)
         # out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
@@ -360,6 +360,9 @@ def train_model(tr_data, val_data, tr_model):
             print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
+        new_tensor = torch.zeros_like(data)
+        data = torch.cat((data, new_tensor), dim=1)
+        target = torch.cat((target, new_tensor), dim=1)
         output = tr_model(data)
         loss = loss_func(output, target)
         with torch.no_grad():
@@ -392,6 +395,9 @@ def train_model(tr_data, val_data, tr_model):
             with torch.no_grad():
                 for inputs, labels in val_dataloader:
                     inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                    new_tensor = torch.zeros_like(inputs)
+                    inputs = torch.cat((inputs, new_tensor), dim=1)
+                    labels = torch.cat((labels, new_tensor), dim=1)
                     nsamples = nsamples + 1
                     if (nsamples > 100):
                         break

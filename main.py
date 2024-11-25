@@ -42,11 +42,14 @@ NUM_EPOCHS = 100
 STATE_DIM = 32#8
 DIM = 16#12
 LR = 0.0025
-SAMPLE_LEN = 1600#1600
+SAMPLE_LEN = 32000#1600#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
 SNR_RANGE = 10.0
+
+APPEND_SILENCE = False
+ONLINE_MODE = False
 
 def bound_f(x, lower_bound=3.7, upper_bound=7.9):
     return max(lower_bound, min(x, upper_bound))
@@ -293,8 +296,10 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
-        self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
-        #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim))
+        if ONLINE_MODE:
+            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
+        else:
+            self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
@@ -360,15 +365,16 @@ def train_model(tr_data, val_data, tr_model):
             print("Batch index: ", batch_idx)
         optimizer.zero_grad()
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
-        random_integer = random.randint(1, 15)
-        if (random_integer > 7):
-            new_tensor = torch.zeros_like(data)
-            data = torch.cat((data, new_tensor), dim=1)
-            target = torch.cat((target, new_tensor), dim=1)
-            if (random_integer == 15):
-                for i in range(9):
-                    data = torch.cat((data, new_tensor), dim=1)
-                    target = torch.cat((target, new_tensor), dim=1)
+        if APPEND_SILENCE:
+            random_integer = random.randint(1, 15)
+            if (random_integer > 7):
+                new_tensor = torch.zeros_like(data)
+                data = torch.cat((data, new_tensor), dim=1)
+                target = torch.cat((target, new_tensor), dim=1)
+                if (random_integer == 15):
+                    for i in range(9):
+                        data = torch.cat((data, new_tensor), dim=1)
+                        target = torch.cat((target, new_tensor), dim=1)
         output = tr_model(data)
         loss = loss_func(output, target)
         with torch.no_grad():
@@ -401,10 +407,11 @@ def train_model(tr_data, val_data, tr_model):
             with torch.no_grad():
                 for inputs, labels in val_dataloader:
                     inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-                    new_tensor = torch.zeros_like(inputs)
-                    inputs = torch.cat((inputs, new_tensor), dim=1)
-                    new_tensor = torch.zeros_like(labels)
-                    labels = torch.cat((labels, new_tensor), dim=1)
+                    if APPEND_SILENCE:
+                        new_tensor = torch.zeros_like(inputs)
+                        inputs = torch.cat((inputs, new_tensor), dim=1)
+                        new_tensor = torch.zeros_like(labels)
+                        labels = torch.cat((labels, new_tensor), dim=1)
                     nsamples = nsamples + 1
                     if (nsamples > 100):
                         break

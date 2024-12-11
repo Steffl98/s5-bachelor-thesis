@@ -296,10 +296,15 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
+        class BNSeq(nn.BatchNorm1d):
+            def forward(self, input: Tensor) -> Tensor:
+                return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
+
         if ONLINE_MODE:
             self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
         else:
-            self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
+            #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
+            self.LN = BNSeq(dim)
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
@@ -310,7 +315,7 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = self.l1(x.float())
         res = out.clone()
-        #out = self.LN(out)
+        out = self.LN(out)
         # out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res

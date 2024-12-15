@@ -39,8 +39,8 @@ ITERATIONS = 32*401*40#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
-STATE_DIM = 16#32#8
-DIM = 16#12
+STATE_DIM = 32#32#8
+DIM = 32#12
 LR = 0.002#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
@@ -297,7 +297,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
 
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=257, padding=128)
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=1025, padding=512)
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=65, padding=32)
 
@@ -383,6 +383,9 @@ def train_model(tr_data, val_data, tr_model):
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
         if APPEND_SILENCE:
             random_integer = random.randint(1, 15)
+            new_tensor = torch.zeros_like(data)
+            data = torch.cat((data, new_tensor), dim=1)
+            target = torch.cat((target, new_tensor), dim=1)
             if (random_integer > 7):
                 new_tensor = torch.zeros_like(data)
                 data = torch.cat((data, new_tensor), dim=1)
@@ -391,6 +394,9 @@ def train_model(tr_data, val_data, tr_model):
                     for i in range(9):
                         data = torch.cat((data, new_tensor), dim=1)
                         target = torch.cat((target, new_tensor), dim=1)
+            new_tensor = torch.zeros_like(data)
+            data = torch.cat((new_tensor, data), dim=1)
+            target = torch.cat((new_tensor, target), dim=1)
         output = tr_model(data)
         loss = loss_func(output, target)
         with torch.no_grad():

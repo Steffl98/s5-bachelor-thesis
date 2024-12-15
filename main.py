@@ -42,7 +42,7 @@ NUM_EPOCHS = 100
 STATE_DIM = 16#32#8
 DIM = 16#12
 LR = 0.002#0.0025
-SAMPLE_LEN = 1600#1600#1600
+SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
@@ -297,9 +297,9 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
 
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=self.dim, kernel_size=1025, padding=512)
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=257, padding=128)
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
-        self.conv3 = nn.Conv1d(in_channels=self.dim, out_channels=1, kernel_size=65, padding=32)
+        self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=65, padding=32)
 
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input: Tensor) -> Tensor:

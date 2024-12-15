@@ -318,7 +318,10 @@ class SequenceToSequenceRNN(nn.Module):
     def forward(self, x):
         h0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 
-        out = self.conv1(x.float())#l1(x.float())
+        out = x.float()
+        out = out.permute(0, 2, 1)
+        out = self.conv1(out)#l1(x.float())
+        out = out.permute(0, 2, 1)
         #res = out.clone()
         out = self.LN(out)
         res = out.clone()
@@ -331,7 +334,9 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.s5b(out)
         out = self.relu(out) + res
         out = self.s5c(out)
+        out = out.permute(0, 2, 1)
         out = self.conv3(out)#l2(out)
+        out = out.permute(0, 2, 1)
         return out
 
 

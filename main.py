@@ -296,6 +296,11 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5 = s5.S5(dim, state_dim)
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
+
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=self.dim, kernel_size=1025, padding=512)
+        #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
+        self.conv3 = nn.Conv1d(in_channels=self.dim, out_channels=1, kernel_size=65, padding=32)
+
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input: Tensor) -> Tensor:
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
@@ -313,9 +318,10 @@ class SequenceToSequenceRNN(nn.Module):
     def forward(self, x):
         h0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 
-        out = self.l1(x.float())
-        res = out.clone()
+        out = self.conv1(x.float())#l1(x.float())
+        #res = out.clone()
         out = self.LN(out)
+        res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
         out = self.relu(out) + res
@@ -325,7 +331,7 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.s5b(out)
         out = self.relu(out) + res
         out = self.s5c(out)
-        out = self.l2(out)
+        out = self.conv3(out)#l2(out)
         return out
 
 

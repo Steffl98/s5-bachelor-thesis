@@ -302,7 +302,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=65, padding=32)
 
         class BNSeq(nn.BatchNorm1d):
-            def forward(self, input: Tensor) -> Tensor:
+            def forward(self, input):
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
 
         if ONLINE_MODE:

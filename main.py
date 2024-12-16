@@ -299,7 +299,17 @@ class SequenceToSequenceRNN(nn.Module):
 
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=513, padding=256)
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
-        self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=65, padding=32)
+        self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=1, padding=0)
+
+        self.conv_layers = nn.ModuleList()
+        for i in range(7):
+            dilation = 2 ** i  # Dilation factor scales with power of 2
+            kernel_size = 33  # Example kernel size (adjust as needed)
+            padding = dilation*(kernel_size-1)/2  # Maintain output size
+            self.conv_layers.append(
+                nn.Conv1d(in_channels=dim if i > 0 else 1, out_channels=dim, kernel_size=kernel_size, dilation=dilation,
+                          padding=padding)
+            )
 
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input):
@@ -320,7 +330,10 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = x.float()
         out = out.permute(0, 2, 1)
-        out = self.conv1(out)#l1(x.float())
+        #out = self.conv1(out)#l1(x.float())
+        for conv in self.conv_layers:
+            out = conv(out)
+            out = self.relu(out)
         out = out.permute(0, 2, 1)
         #res = out.clone()
         out = self.LN(out)

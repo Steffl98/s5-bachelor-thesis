@@ -39,9 +39,9 @@ ITERATIONS = 32*401*40#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
-STATE_DIM = 32#32#8
-DIM = 32#12
-LR = 0.002#0.0025
+STATE_DIM = 16#32#8
+DIM = 16#12
+LR = 0.0007#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
@@ -297,7 +297,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
 
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=1025, padding=512)
+        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=513, padding=256)
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=65, padding=32)
 
@@ -306,10 +306,10 @@ class SequenceToSequenceRNN(nn.Module):
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
 
         if ONLINE_MODE:
-            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
+            self.LN = BNSeq(dim)
         else:
             #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
-            self.LN = BNSeq(dim)
+            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)

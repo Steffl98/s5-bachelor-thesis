@@ -305,7 +305,7 @@ class SequenceToSequenceRNN(nn.Module):
         for i in range(7):
             dilation = 2 ** i  # Dilation factor scales with power of 2
             kernel_size = 33  # Example kernel size (adjust as needed)
-            padding = dilation*(kernel_size-1)/2  # Maintain output size
+            padding = int(dilation*(kernel_size-1)//2)  # Maintain output size
             self.conv_layers.append(
                 nn.Conv1d(in_channels=dim if i > 0 else 1, out_channels=dim, kernel_size=kernel_size, dilation=dilation,
                           padding=padding)

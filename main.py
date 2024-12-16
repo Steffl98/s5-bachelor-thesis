@@ -265,6 +265,41 @@ class AudioDataSet(Dataset):
         #self.mode = mode
 
 
+class ParallelDilatedConv1d(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, dilations):
+        """
+        Args:
+            in_channels (int): Number of input channels (1 for mono audio).
+            out_channels (int): Number of output channels for each convolution path.
+            kernel_size (int): Kernel size for the convolutions.
+            dilations (list): List of dilation rates for parallel convolutions.
+        """
+        super(ParallelDilatedConv1d, self).__init__()
+        self.conv_paths = nn.ModuleList([
+            nn.Conv1d(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                dilation=int(2**(d//2)),
+                padding=(kernel_size - 1) * int(2**(d//2)) // 2  # Ensures output length equals input length
+            )
+            for d in dilations
+        ])
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        """
+        Forward pass through parallel dilated convolutions.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, in_channels, seq_length).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, out_channels * len(dilations), seq_length).
+        """
+        outputs = [self.relu(conv(x)) for conv in self.conv_paths]
+        return torch.cat(outputs, dim=1)  # Concatenate along the channel dimension
+
 class SequenceToSequenceRNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1):
         #num_layers = 1
@@ -311,6 +346,8 @@ class SequenceToSequenceRNN(nn.Module):
                           padding=padding)
             )
 
+        self.parallel_convs = ParallelDilatedConv1d(1, 1, 33, DIM)
+
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input):
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
@@ -331,9 +368,10 @@ class SequenceToSequenceRNN(nn.Module):
         out = x.float()
         out = out.permute(0, 2, 1)
         #out = self.conv1(out)#l1(x.float())
-        for conv in self.conv_layers:
+        """for conv in self.conv_layers:
             out = conv(out)
-            out = self.relu(out)
+            out = self.relu(out)"""
+        out = self.parallel_convs(out)
         out = out.permute(0, 2, 1)
         #res = out.clone()
         out = self.LN(out)

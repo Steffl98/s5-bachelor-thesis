@@ -283,7 +283,7 @@ class ParallelDilatedConv1d(nn.Module):
                 dilation=int(2**(d//2)),
                 padding=(kernel_size - 1) * int(2**(d//2)) // 2  # Ensures output length equals input length
             )
-            for d in dilations
+            for d in range(dilations)
         ])
         self.relu = nn.ReLU()
 

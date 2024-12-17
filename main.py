@@ -280,8 +280,8 @@ class ParallelDilatedConv1d(nn.Module):
                 in_channels=in_channels,
                 out_channels=out_channels,
                 kernel_size=kernel_size,
-                dilation=int(2**(d//2)),
-                padding=(kernel_size - 1) * int(2**(d//2)) // 2  # Ensures output length equals input length
+                dilation=int(2**(d//4)),
+                padding=(kernel_size - 1) * int(2**(d//4)) // 2  # Ensures output length equals input length
             )
             for d in range(dilations)
         ])
@@ -346,7 +346,7 @@ class SequenceToSequenceRNN(nn.Module):
                           padding=padding)
             )
 
-        self.parallel_convs = ParallelDilatedConv1d(1, 1, 33, DIM)
+        self.parallel_convs = ParallelDilatedConv1d(1, 1, 513, DIM)## used to be 33
 
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input):
@@ -356,7 +356,7 @@ class SequenceToSequenceRNN(nn.Module):
             self.LN = BNSeq(dim)
         else:
             #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
-            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=True)
+            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)

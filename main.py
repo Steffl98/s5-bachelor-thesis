@@ -373,13 +373,14 @@ class SequenceToSequenceRNN(nn.Module):
             out = self.relu(out)"""
         out = self.parallel_convs(out)
         out = out.permute(0, 2, 1)
-        out = self.LN(out)
+        #out = self.LN(out)
         out = self.relu(out)
         #res = out.clone()
 
         res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
+        out = self.LN(out)
         out = self.relu(out) + res
 
         res = out.clone()

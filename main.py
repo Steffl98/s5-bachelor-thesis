@@ -41,7 +41,7 @@ NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 16#32#8
 DIM = 16#12
-LR = 0.0007#0.0025
+LR = 0.006#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
 SNR_MODE_DB = True
@@ -352,7 +352,7 @@ class SequenceToSequenceRNN(nn.Module):
             def forward(self, input):
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
 
-        if ONLINE_MODE:
+        if not ONLINE_MODE:
             self.LN = BNSeq(dim)
         else:
             #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!

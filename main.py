@@ -380,12 +380,13 @@ class SequenceToSequenceRNN(nn.Module):
         res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
-        out = self.LN(out)
+        # out = self.LN(out)
         out = self.relu(out) + res
 
         res = out.clone()
 
         out = self.s5b(out)
+        out = self.LN(out)
         out = self.relu(out) + res
         out = self.s5c(out)
         out = out.permute(0, 2, 1)

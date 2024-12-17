@@ -35,7 +35,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*40#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*20#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -372,9 +372,10 @@ class SequenceToSequenceRNN(nn.Module):
             out = conv(out)
             out = self.relu(out)"""
         out = self.parallel_convs(out)
+        out = self.LN(out)
         out = out.permute(0, 2, 1)
         #res = out.clone()
-        out = self.LN(out)
+
         res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)

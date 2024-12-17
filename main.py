@@ -356,7 +356,7 @@ class SequenceToSequenceRNN(nn.Module):
             self.LN = BNSeq(dim)
         else:
             #self.LN = torch.nn.LayerNorm((SAMPLE_LEN, dim), elementwise_affine=False) # elemwise False is new!!!
-            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=False)
+            self.LN = torch.nn.LayerNorm(dim, elementwise_affine=True)
         #self.BN = nn.BatchNorm1d(SAMPLE_LEN)
         self.relu = torch.nn.ReLU()
         self.dropout = torch.nn.Dropout(p=0.5)
@@ -386,7 +386,7 @@ class SequenceToSequenceRNN(nn.Module):
         res = out.clone()
 
         out = self.s5b(out)
-        out = self.LN(out)
+        #out = self.LN(out)
         out = self.relu(out) + res
         out = self.s5c(out)
         out = out.permute(0, 2, 1)

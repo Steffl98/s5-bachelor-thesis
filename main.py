@@ -367,11 +367,11 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = x.float()
         out = out.permute(0, 2, 1)
-        #out = self.conv1(out)#l1(x.float())
+        out = self.conv1(out)#l1(x.float())
         """for conv in self.conv_layers:
             out = conv(out)
             out = self.relu(out)"""
-        out = self.parallel_convs(out)
+        #out = self.parallel_convs(out)
         out = out.permute(0, 2, 1)
         #out = self.LN(out)
         out = self.relu(out)
@@ -380,13 +380,13 @@ class SequenceToSequenceRNN(nn.Module):
         res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
-        # out = self.LN(out)
+        out = self.LN(out)
         out = self.relu(out) + res
 
         res = out.clone()
 
         out = self.s5b(out)
-        out = self.LN(out)
+        # out = self.LN(out)
         out = self.relu(out) + res
         out = self.s5c(out)
         out = out.permute(0, 2, 1)

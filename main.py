@@ -267,7 +267,7 @@ class AudioDataSet(Dataset):
 
 
 class CausalConv1D(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, dilation):
+    def __init__(self, in_channels, out_channels, kernel_size, dilation=1):
         super(CausalConv1D, self).__init__()
         self.kernel_size = kernel_size
         self.dilation = dilation

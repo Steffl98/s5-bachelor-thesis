@@ -265,6 +265,28 @@ class AudioDataSet(Dataset):
         #self.mode = mode
 
 
+
+class CausalConv1D(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, dilation):
+        super(CausalConv1D, self).__init__()
+        self.kernel_size = kernel_size
+        self.dilation = dilation
+        self.conv = nn.Conv1d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            padding=0,  # No padding in Conv1d; padding is handled manually
+            dilation=dilation
+        )
+
+    def forward(self, x):
+        # Calculate the amount of causal padding
+        causal_padding = self.dilation * (self.kernel_size - 1)
+        # Pad input tensor on the left (asymmetric padding)
+        x = F.pad(x, (causal_padding, 0))  # Pad only on the left
+        return self.conv(x)
+
+
 class ParallelDilatedConv1d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, dilations):
         """
@@ -276,12 +298,12 @@ class ParallelDilatedConv1d(nn.Module):
         """
         super(ParallelDilatedConv1d, self).__init__()
         self.conv_paths = nn.ModuleList([
-            nn.Conv1d(
+            CausalConv1D(
                 in_channels=in_channels,
                 out_channels=out_channels,
                 kernel_size=kernel_size,
-                dilation=int(2**(d//2)),
-                padding=(kernel_size - 1) * int(2**(d//2)) // 2  # Ensures output length equals input length
+                dilation=int(2**(d//2))#,
+                #padding=(kernel_size - 1) * int(2**(d//2)) // 2  # Ensures output length equals input length
             )
             for d in range(dilations)
         ])
@@ -299,6 +321,10 @@ class ParallelDilatedConv1d(nn.Module):
         """
         outputs = [self.relu(conv(x)) for conv in self.conv_paths]
         return torch.cat(outputs, dim=1)  # Concatenate along the channel dimension
+
+
+
+
 
 class SequenceToSequenceRNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1):
@@ -332,9 +358,9 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
 
-        self.conv1 = nn.Conv1d(in_channels=1, out_channels=dim, kernel_size=513, padding=256)
+        self.conv1 = CausalConv1D(in_channels=1, out_channels=dim, kernel_size=513)#, padding=256)
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
-        self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=1, padding=0)
+        self.conv3 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
 
         #self.scalar1 = nn.Parameter(torch.ones(1))
         #self.scalar2 = nn.Parameter(torch.ones(1))
@@ -345,21 +371,23 @@ class SequenceToSequenceRNN(nn.Module):
             kernel_size = 33  # Example kernel size (adjust as needed)
             padding = int(dilation*(kernel_size-1)//2)  # Maintain output size
             self.conv_layers.append(
-                nn.Conv1d(in_channels=dim if i > 0 else 1, out_channels=dim, kernel_size=kernel_size, dilation=dilation,
-                          padding=padding)
+                CausalConv1D(in_channels=dim if i > 0 else 1, out_channels=dim, kernel_size=kernel_size, dilation=dilation)#,
+                          #padding=padding)
             )
 
         self.parallel_convs = ParallelDilatedConv1d(1, 1, 33, DIM)## used to be 33
 
         dilation = 4
         kernel_size = 129
-        padding = int(dilation * (kernel_size - 1) // 2)
-        self.conv_after_parallel = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size, padding=padding, dilation=dilation)
-        self.conv_after_parallel2 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
-                                             padding=padding, dilation=dilation)
-        self.conv_after_parallel3 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
-                                             padding=padding, dilation=dilation)
-
+        #padding = int(dilation * (kernel_size - 1) // 2)
+        self.conv_after_parallel = CausalConv1D(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+                                             dilation=dilation)#, padding=padding)
+        """
+        # self.conv_after_parallel2 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+        #                                     padding=padding, dilation=dilation)
+        # self.conv_after_parallel3 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+        #                                     padding=padding, dilation=dilation)
+        """
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input):
                 return super().forward(input.transpose(-2,-1)).transpose(-2,-1)
@@ -384,25 +412,25 @@ class SequenceToSequenceRNN(nn.Module):
             out = conv(out)
             out = self.relu(out)"""
         out = self.parallel_convs(out)
-        out = self.conv_after_parallel(out)
-        out = self.conv_after_parallel2(out)
-        out = self.conv_after_parallel3(out)
+        #out = self.conv_after_parallel(out)
+        #out = self.conv_after_parallel2(out)
+        #out = self.conv_after_parallel3(out)
         out = out.permute(0, 2, 1)
         #out = self.LN(out)
         out = self.relu(out)
         #res = out.clone()
 
-        #res = out.clone()
+        res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
         out = self.LN(out)
-        out = self.relu(out)# + res#*self.scalar1
+        out = self.relu(out) + res#*self.scalar1
 
-        #res = out.clone()
+        res = out.clone()
 
         out = self.s5b(out)
         #out = self.LN(out)
-        out = self.relu(out)# + res#self.scalar2
+        out = self.relu(out) + res#self.scalar2
         out = self.s5c(out)
         out = out.permute(0, 2, 1)
         out = self.conv3(out)#l2(out)

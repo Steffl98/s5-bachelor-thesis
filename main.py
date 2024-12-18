@@ -44,6 +44,7 @@ DIM = 16#12
 LR = 0.006#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
+CONV_MARGIN = 4098
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
 SNR_RANGE = 10.0
@@ -481,10 +482,12 @@ def train_model(tr_data, val_data, tr_model):
         data, target = data.to(device, non_blocking=True), target.to(device, non_blocking=True)
         if APPEND_SILENCE:
             random_integer = random.randint(1, 15)
-            new_tensor = torch.zeros_like(data)
-            data = torch.cat((data, new_tensor), dim=1)
-            target = torch.cat((target, new_tensor), dim=1)
+            di1, di2, di3 = data.shape
+            zeros_tensor = torch.zeros((di1, CONV_MARGIN, di3), dtype=data.dtype, device=data.device)
+            #data = torch.cat((data, zeros_tensor), dim=1)
+            #target = torch.cat((target, zeros_tensor), dim=1)
             if (random_integer > 7):
+                #new_tensor = torch.zeros_like(data)
                 new_tensor = torch.zeros_like(data)
                 data = torch.cat((data, new_tensor), dim=1)
                 target = torch.cat((target, new_tensor), dim=1)
@@ -492,9 +495,9 @@ def train_model(tr_data, val_data, tr_model):
                     for i in range(9):
                         data = torch.cat((data, new_tensor), dim=1)
                         target = torch.cat((target, new_tensor), dim=1)
-            new_tensor = torch.zeros_like(data)
-            data = torch.cat((new_tensor, data), dim=1)
-            target = torch.cat((new_tensor, target), dim=1)
+            #new_tensor = torch.zeros_like(data)
+            data = torch.cat((zeros_tensor, data), dim=1)
+            target = torch.cat((zeros_tensor, target), dim=1)
         output = tr_model(data)
         loss = loss_func(output, target)
         with torch.no_grad():

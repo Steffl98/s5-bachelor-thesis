@@ -336,8 +336,8 @@ class SequenceToSequenceRNN(nn.Module):
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=1, padding=0)
 
-        self.scalar1 = nn.parameter(float(1.0), requires_grad=True)
-        self.scalar2 = nn.parameter(float(1.0), requires_grad=True)
+        self.scalar1 = nn.Parameter(torch.ones(1))
+        self.scalar2 = nn.Parameter(torch.ones(1))
 
         self.conv_layers = nn.ModuleList()
         for i in range(7):

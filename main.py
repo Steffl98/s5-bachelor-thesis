@@ -336,8 +336,8 @@ class SequenceToSequenceRNN(nn.Module):
         #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = nn.Conv1d(in_channels=dim, out_channels=1, kernel_size=1, padding=0)
 
-        self.scalar1 = nn.Parameter(torch.ones(1))
-        self.scalar2 = nn.Parameter(torch.ones(1))
+        #self.scalar1 = nn.Parameter(torch.ones(1))
+        #self.scalar2 = nn.Parameter(torch.ones(1))
 
         self.conv_layers = nn.ModuleList()
         for i in range(7):
@@ -380,17 +380,17 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.relu(out)
         #res = out.clone()
 
-        res = out.clone()
+        #res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
         out = self.LN(out)
-        out = self.relu(out) + res*self.scalar1
+        out = self.relu(out)# + res#*self.scalar1
 
-        res = out.clone()
+        #res = out.clone()
 
         out = self.s5b(out)
         #out = self.LN(out)
-        out = self.relu(out) + res*self.scalar2
+        out = self.relu(out)# + res#self.scalar2
         out = self.s5c(out)
         out = out.permute(0, 2, 1)
         out = self.conv3(out)#l2(out)

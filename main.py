@@ -355,6 +355,10 @@ class SequenceToSequenceRNN(nn.Module):
         kernel_size = 129
         padding = int(dilation * (kernel_size - 1) // 2)
         self.conv_after_parallel = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size, padding=padding, dilation=dilation)
+        self.conv_after_parallel2 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+                                             padding=padding, dilation=dilation)
+        self.conv_after_parallel3 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+                                             padding=padding, dilation=dilation)
 
         class BNSeq(nn.BatchNorm1d):
             def forward(self, input):
@@ -381,6 +385,8 @@ class SequenceToSequenceRNN(nn.Module):
             out = self.relu(out)"""
         out = self.parallel_convs(out)
         out = self.conv_after_parallel(out)
+        out = self.conv_after_parallel2(out)
+        out = self.conv_after_parallel3(out)
         out = out.permute(0, 2, 1)
         #out = self.LN(out)
         out = self.relu(out)

@@ -35,13 +35,13 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*20#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*120#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 16#32#8
 DIM = 16#12
-LR = 0.006#0.0025
+LR = 0.002#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
 CONV_MARGIN = 4098
@@ -418,12 +418,15 @@ class SequenceToSequenceRNN(nn.Module):
         #out = self.conv_after_parallel3(out)
         out = out.permute(0, 2, 1)
         #out = self.LN(out)
-        out = self.relu(out)
+        #out = self.relu(out)
         #res = out.clone()
 
         res = out.clone()
         # out = self.LN(out)
         out = self.s5(out)
+        out = out.permute(0, 2, 1)
+        out = self.conv_after_parallel(out)
+        out = out.permute(0, 2, 1)
         out = self.LN(out)
         out = self.relu(out) + res#*self.scalar1
 
@@ -709,7 +712,7 @@ print("\n")
 torch.save(model.state_dict(), os.path.join(script_dir, "code", "output", "model_paramcount.zip"))
 quit()"""
 print("Finished preparing model.")
-
+"""
 wav_lens = []
 all_files = list_files(os.path.join(script_dir, "audio", "voice_clips_wav"))
 for i in all_files:
@@ -723,7 +726,7 @@ plt.ylabel("Frequency")
 plt.savefig(os.path.join(script_dir, "code", "output", "histogram.png"))
 plt.clf()
 
-create_dataset_spectrogram()
+create_dataset_spectrogram()"""
 #quit()
 
 files, val_files, test_files = get_files_lists(os.path.join(script_dir, "audio", "voice_clips_wav"), 100, 0)

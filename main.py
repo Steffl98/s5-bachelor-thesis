@@ -24,6 +24,7 @@ import shutil
 Initialization = Literal['dense_columns', 'dense', 'factorized']
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 import csv
+import gc
 
 script_dir = os.path.join("C:\\", "Users", "stefa", "OneDrive", "Desktop", "Uni", "Bachelorarbeit")
 try:
@@ -77,7 +78,10 @@ def read_wav(filename): # max len after resampling = 982988
                 break
             value = (data_to_type(data, 'h')+0.5)/32767.5 # h = short, H = unsigned short; https://docs.python.org/3/library/struct.html
             values.append(value)
-    return values
+    #array = np.array(values, dtype=float)
+    #del values
+    #gc.collect()
+    return values # array
 
 def resample(data, ratio, offset=0, max_len=SAMPLE_LEN):
     # len(data) > SAMPLE_LEN * ratio + offset
@@ -193,7 +197,10 @@ class AudioDataSet(Dataset):
                     percstr = percstr[0:4]
                 print("Loading wavs: ", percstr, "%")
             cur_item = read_wav(item)
-            (self.wavs).append(cur_item)
+            array = np.array(cur_item, dtype=float)
+            del cur_item
+            gc.collect()
+            (self.wavs).append(array)#cur_item)
             voice_rms = voice_rms + torch.sqrt(torch.mean(torch.tensor(cur_item) ** 2))
         voice_rms = voice_rms / cntrr
         self.RMS = voice_rms
@@ -203,6 +210,7 @@ class AudioDataSet(Dataset):
         #self.wavs = self.wavs[200:]
         self.transform = transform
         self.target_transform = target_transform
+        #wavs_list = (self.wavs[idx % len(self.wavs)]).tolist()
         self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
         self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
         self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
@@ -242,9 +250,9 @@ class AudioDataSet(Dataset):
         noice = self.noise_choice[idx]
 
         if (self.long_mode == False):
-            label_data = resample(self.wavs[idx % len(self.wavs)], fshift*44.1/16.0, offs)
+            label_data = resample((self.wavs[idx % len(self.wavs)]).tolist(), fshift*44.1/16.0, offs)
         else:
-            label_data = resample(self.wavs[idx % len(self.wavs)], fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
+            label_data = resample((self.wavs[idx % len(self.wavs)]).tolist(), fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
 
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
@@ -253,6 +261,7 @@ class AudioDataSet(Dataset):
         if (noice == 3):
             audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx])
         label_data = amplify(label_data, self.SNR_fac[idx])
+        gc.collect()
         return (torch.tensor(audio_data)).unsqueeze(1), (torch.tensor(label_data)).unsqueeze(1)
     def get_SNR_fac(self, x):
         return self.SNR_fac[x]

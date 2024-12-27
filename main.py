@@ -162,7 +162,7 @@ def add_noise(data, noise, fac):
         #noize.append((fac*data[i] + (1.0 - fac)*noise[i % nsamples]))
         noize[append_i] = (fac*data[i] + (1.0 - fac)*noise[i % nsamples])
         append_i = append_i + 1
-    return noize.tolist()
+    return noize#.tolist()
 
 def amplify(data, fac):
     samples = len(data)
@@ -270,11 +270,11 @@ class AudioDataSet(Dataset):
             label_data = resample((self.wavs[idx % len(self.wavs)]), fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
 
         if (noice == 1):
-            audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])
+            audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx]).tolist()
         if (noice == 2):
-            audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx])
+            audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx]).tolist()
         if (noice == 3):
-            audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx])
+            audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx]).tolist()
         label_data = amplify(label_data, self.SNR_fac[idx]).tolist()
         gc.collect()
         return (torch.tensor(audio_data)).unsqueeze(1), (torch.tensor(label_data)).unsqueeze(1)
@@ -384,7 +384,7 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5c = s5.S5(dim, state_dim)
 
         self.conv1 = CausalConv1D(in_channels=1, out_channels=dim, kernel_size=513)#, padding=256)
-        #self.conv2 = nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
+        self.conv2 = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=513)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
 
         #self.scalar1 = nn.Parameter(torch.ones(1))
@@ -436,7 +436,7 @@ class SequenceToSequenceRNN(nn.Module):
         """for conv in self.conv_layers:
             out = conv(out)
             out = self.relu(out)"""
-        out = self.parallel_convs(out)
+        out = self.parallel_convs(out) #  <------    already has ReLU
         #out = self.conv_after_parallel(out)
         #out = self.conv_after_parallel2(out)
         #out = self.conv_after_parallel3(out)
@@ -449,7 +449,7 @@ class SequenceToSequenceRNN(nn.Module):
         # out = self.LN(out)
         out = self.s5(out)
         out = out.permute(0, 2, 1)
-        out = self.conv_after_parallel(out)
+        out = self.conv_after_parallel(out) # no ReLU in here fyi
         out = out.permute(0, 2, 1)
         out = self.LN(out)
         out = self.relu(out) + res#*self.scalar1
@@ -458,6 +458,9 @@ class SequenceToSequenceRNN(nn.Module):
 
         out = self.s5b(out)
         #out = self.LN(out)
+        out = out.permute(0, 2, 1)
+        out = self.conv2(out)
+        out = out.permute(0, 2, 1)
         out = self.relu(out) + res#self.scalar2
         out = self.s5c(out)
         out = out.permute(0, 2, 1)

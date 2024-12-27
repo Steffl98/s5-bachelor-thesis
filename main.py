@@ -89,10 +89,11 @@ def resample(data, ratio, offset=0, max_len=SAMPLE_LEN):
     #offset = 0
     if (max_len == 0):
         max_len = SAMPLE_LEN
-    xyz = []
+    xyz = np.zeros(max_len) # []
     old_num = len(data)
     new_num = int(old_num / ratio)
     max_offset = int(old_num) - int(max_len * ratio)
+    append_i = 0
     if (max_offset > 0):
         offset = int(offset % max_offset)
     else:
@@ -107,56 +108,70 @@ def resample(data, ratio, offset=0, max_len=SAMPLE_LEN):
                 print("indecks", indecks)
                 print("len", len(data))
                 print("old_num", old_num)
-            xyz.append(data[indecks])
-    while (len(xyz) < max_len): # P A D
-        xyz.append(int(0))
+            # xyz.append(data[indecks])
+            xyz[append_i] = data[indecks]
+            append_i = append_i + 1
+    #while (len(xyz) < max_len): # P A D
+        #xyz.append(int(0))
     return xyz
 
 
 
 
 def resample_no_cap(data, ratio):
-    xyz = []
     old_num = len(data)
     new_num = int(old_num / ratio)
+    xyz = np.zeros(new_num) # []
+    append_i = 0
     for i in range(new_num):
         indecks = int(i * ratio)
         if ((indecks < old_num) and (indecks > -1)):
-            xyz.append(data[indecks])
+            #xyz.append(data[indecks])
+            xyz[append_i] = data[indecks]
+            append_i = append_i + 1
     return xyz
 
 
 def resample2(data, ratio, leng):
     #offset = 0
-    xyz = []
+    xyz = np.zeros(leng)#[]
     old_num = len(data)
     new_num = int(old_num / ratio)
     app_cnt = 0
+    append_i = 0
     for i in range(new_num):
         indecks = int(i * ratio)
         if (i >= leng): # C U L L
             break
         if ((indecks < old_num) and (indecks > -1)):
-            xyz.append(data[indecks])
+            #xyz.append(data[indecks])
+            xyz[append_i] = data[indecks]
             app_cnt = app_cnt + 1
-    while (len(xyz) < leng): # P A D
-        xyz.append(int(0))
+            append_i = append_i + 1
+    #while (len(xyz) < leng): # P A D
+        #xyz.append(int(0))
     return xyz, app_cnt
 
 
 def add_noise(data, noise, fac):
     samples = len(data)
     nsamples = len(noise)
-    noize = []
+    noize = np.zeros(samples)#[]
+    append_i = 0
     for i in range(samples):
-        noize.append((fac*data[i] + (1.0 - fac)*noise[i % nsamples]))
+        #noize.append((fac*data[i] + (1.0 - fac)*noise[i % nsamples]))
+        noize[append_i] = (fac*data[i] + (1.0 - fac)*noise[i % nsamples])
+        append_i = append_i + 1
     return noize
 
 def amplify(data, fac):
     samples = len(data)
-    ret = []
+    ret = np.zeros(samples)#[]
+    append_i = 0
     for i in range(samples):
-        ret.append((fac*data[i]))
+        #ret.append((fac*data[i]))
+        ret[append_i] = (fac*data[i])
+        append_i = append_i + 1
     return ret
 
 def list_files(directory):
@@ -211,10 +226,10 @@ class AudioDataSet(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         #wavs_list = (self.wavs[idx % len(self.wavs)]).tolist()
-        self.pink_noise = read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav"))
-        self.shot_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav"))
-        self.trans_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav"))
-        self.white_noise = read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav"))
+        self.pink_noise = np.array(read_wav(os.path.join(script_dir, "audio", "noise", "noise_pink_flicker_16k.wav")), dtype=float)
+        self.shot_noise = np.array(read_wav(os.path.join(script_dir, "audio", "noise", "Noise_Shot_16k.wav")), dtype=float)
+        self.trans_noise = np.array(read_wav(os.path.join(script_dir, "audio", "noise", "Noise_transistor_at_16k.wav")), dtype=float)
+        self.white_noise = np.array(read_wav(os.path.join(script_dir, "audio", "noise", "Noise_white_16k.wav")), dtype=float)
         self.pink_noise = resample_no_cap(self.pink_noise, 44.1/16.0)
         self.shot_noise = resample_no_cap(self.shot_noise, 44.1 / 16.0)
         self.trans_noise = resample_no_cap(self.trans_noise, 44.1 / 16.0)
@@ -250,9 +265,9 @@ class AudioDataSet(Dataset):
         noice = self.noise_choice[idx]
 
         if (self.long_mode == False):
-            label_data = resample((self.wavs[idx % len(self.wavs)]).tolist(), fshift*44.1/16.0, offs)
+            label_data = resample((self.wavs[idx % len(self.wavs)]), fshift*44.1/16.0, offs)
         else:
-            label_data = resample((self.wavs[idx % len(self.wavs)]).tolist(), fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
+            label_data = resample((self.wavs[idx % len(self.wavs)]), fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
 
         if (noice == 1):
             audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])

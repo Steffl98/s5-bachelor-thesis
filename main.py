@@ -36,13 +36,13 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*120#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*5#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 32
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 16#32#8
 DIM = 16#12
-LR = 0.002#0.0025
+LR = 0.006#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
 CONV_MARGIN = 4098
@@ -198,10 +198,10 @@ class AudioDataSet(Dataset):
                 print("Loading wavs: ", percstr, "%")
             cur_item = read_wav(item)
             array = np.array(cur_item, dtype=float)
-            del cur_item
-            gc.collect()
             (self.wavs).append(array)#cur_item)
             voice_rms = voice_rms + torch.sqrt(torch.mean(torch.tensor(cur_item) ** 2))
+            del cur_item
+            gc.collect()
         voice_rms = voice_rms / cntrr
         self.RMS = voice_rms
         print("Done loading wavs.")

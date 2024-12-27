@@ -162,7 +162,7 @@ def add_noise(data, noise, fac):
         #noize.append((fac*data[i] + (1.0 - fac)*noise[i % nsamples]))
         noize[append_i] = (fac*data[i] + (1.0 - fac)*noise[i % nsamples])
         append_i = append_i + 1
-    return noize
+    return noize.tolist()
 
 def amplify(data, fac):
     samples = len(data)

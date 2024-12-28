@@ -576,7 +576,7 @@ def train_model(tr_data, val_data, tr_model):
                         break
                     outputs = tr_model(inputs)
                     # noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
-                    remainder = (outputs - labels)
+                    remainder = (inputs - labels)#(outputs - labels)
                     remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
                     remainder_db = 10.0 * math.log10(remainder_rms)
                     #l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())

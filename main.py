@@ -270,14 +270,14 @@ class AudioDataSet(Dataset):
             label_data = resample((self.wavs[idx % len(self.wavs)]), fshift * 44.1 / 16.0, offs, max_len=SAMPLE_LEN_LONG)
 
         if (noice == 1):
-            audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx]).tolist()
+            audio_data = add_noise(label_data, self.pink_noise, self.SNR_fac[idx])#.tolist()
         if (noice == 2):
-            audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx]).tolist()
+            audio_data = add_noise(label_data, self.white_noise, self.SNR_fac[idx])#.tolist()
         if (noice == 3):
-            audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx]).tolist()
-        label_data = amplify(label_data, self.SNR_fac[idx]).tolist()
+            audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx])#.tolist()
+        label_data = amplify(label_data, self.SNR_fac[idx])#.tolist()
         gc.collect()
-        return (torch.tensor(audio_data)).unsqueeze(1), (torch.tensor(label_data)).unsqueeze(1)
+        return (torch.tensor(audio_data)).unsqueeze(1).double(), (torch.tensor(label_data)).unsqueeze(1).double()
     def get_SNR_fac(self, x):
         return self.SNR_fac[x]
     def get_noise_choice(self, x):
@@ -449,7 +449,7 @@ class SequenceToSequenceRNN(nn.Module):
         # out = self.LN(out)
         out = self.s5(out)
         out = out.permute(0, 2, 1)
-        out = self.conv_after_parallel(out) # no ReLU in here fyi
+        out = self.conv_after_parallel(out) # no ReLU in here fyi, equal to conv2
         out = out.permute(0, 2, 1)
         out = self.LN(out)
         out = self.relu(out) + res#*self.scalar1
@@ -459,7 +459,7 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.s5b(out)
         #out = self.LN(out)
         out = out.permute(0, 2, 1)
-        out = self.conv2(out)
+        out = self.conv2(out) # equal to conv_after_parallel
         out = out.permute(0, 2, 1)
         out = self.relu(out) + res#self.scalar2
         out = self.s5c(out)

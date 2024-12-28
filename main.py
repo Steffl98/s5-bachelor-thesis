@@ -277,7 +277,7 @@ class AudioDataSet(Dataset):
             audio_data = add_noise(label_data, self.shot_noise, self.SNR_fac[idx])#.tolist()
         label_data = amplify(label_data, self.SNR_fac[idx])#.tolist()
         gc.collect()
-        return (torch.tensor(audio_data)).unsqueeze(1).double(), (torch.tensor(label_data)).unsqueeze(1).double()
+        return (torch.tensor(audio_data)).unsqueeze(1).float(), (torch.tensor(label_data)).unsqueeze(1).float()
     def get_SNR_fac(self, x):
         return self.SNR_fac[x]
     def get_noise_choice(self, x):

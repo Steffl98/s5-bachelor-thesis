@@ -586,7 +586,7 @@ def train_model(tr_data, val_data, tr_model):
                     noice = val_data.get_noise_choice(nsamples - 1)
                     # torch.sqrt(torch.mean(torch.tensor(self.pink_noise) ** 2))
                     noise_rms = val_data.get_rms() * SNR_fac# * ( di2/(CONV_MARGIN*2 + di2) )
-                    padded_noise_rms = sqrt(noise_rms^2 * di2 / (CONV_MARGIN*2 + di2))
+                    padded_noise_rms = torch.sqrt(noise_rms^2 * di2 / (CONV_MARGIN*2 + di2))
                     noise_db = 10.0 * math.log10(padded_noise_rms)
                     """if (noice == 1):
                         noise_db = -15.9789

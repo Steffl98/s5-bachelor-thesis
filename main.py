@@ -36,7 +36,7 @@ except IndexError:
     print("Attempting to use default path...")
     #sys.exit(1)
 
-ITERATIONS = 32*401*5#320128#38400#int(37000*2 + 1)
+ITERATIONS = 32*401*50#320128#38400#int(37000*2 + 1)
 BATCH_SIZE = 16
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
@@ -383,8 +383,10 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5b = s5.S5(dim, state_dim)
         self.s5c = s5.S5(dim, state_dim)
 
+        dilation = 4
+        kernel_size = 129
         self.conv1 = CausalConv1D(in_channels=1, out_channels=dim, kernel_size=513)#, padding=256)
-        self.conv2 = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=513)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
+        self.conv2 = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
         self.conv3 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
 
         #self.scalar1 = nn.Parameter(torch.ones(1))
@@ -576,7 +578,7 @@ def train_model(tr_data, val_data, tr_model):
                         break
                     outputs = tr_model(inputs)
                     # noise_remaining = 10.0 * math.log10(loss_func((outputs - labels), zeros).item())
-                    remainder = (inputs - labels)#(outputs - labels)
+                    remainder = (outputs - labels) # (inputs - labels) <- for testing purposes
                     remainder_rms = torch.sqrt(torch.mean(torch.tensor(remainder) ** 2))
                     remainder_db = 10.0 * math.log10(remainder_rms)
                     #l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())

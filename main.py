@@ -37,7 +37,7 @@ except IndexError:
     #sys.exit(1)
 
 ITERATIONS = 32*401*5#320128#38400#int(37000*2 + 1)
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 NUM_WORKERS = 8
 NUM_EPOCHS = 100
 STATE_DIM = 16#32#8
@@ -45,7 +45,7 @@ DIM = 16#12
 LR = 0.006#0.0025
 SAMPLE_LEN = 3200#1600#1600
 SAMPLE_LEN_LONG = 32000
-CONV_MARGIN = 4098
+CONV_MARGIN = 5250#4098
 SNR_MODE_DB = True
 DO_TRAIN_MODEL = True
 SNR_RANGE = 10.0
@@ -518,13 +518,13 @@ def train_model(tr_data, val_data, tr_model):
             #target = torch.cat((target, zeros_tensor), dim=1)
             if (random_integer > 7):
                 #new_tensor = torch.zeros_like(data)
-                new_tensor = torch.zeros_like(data)
-                data = torch.cat((data, new_tensor), dim=1)
-                target = torch.cat((target, new_tensor), dim=1)
+                #new_tensor = torch.zeros_like(data)
+                data = torch.cat((data, zeros_tensor), dim=1)
+                target = torch.cat((target, zeros_tensor), dim=1)
                 if (random_integer == 15):
-                    for i in range(9):
-                        data = torch.cat((data, new_tensor), dim=1)
-                        target = torch.cat((target, new_tensor), dim=1)
+                    for i in range(2):
+                        data = torch.cat((data, zeros_tensor), dim=1)
+                        target = torch.cat((target, zeros_tensor), dim=1)
             #new_tensor = torch.zeros_like(data)
             data = torch.cat((zeros_tensor, data), dim=1)
             target = torch.cat((zeros_tensor, target), dim=1)
@@ -560,11 +560,17 @@ def train_model(tr_data, val_data, tr_model):
             with torch.no_grad():
                 for inputs, labels in val_dataloader:
                     inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                    #if APPEND_SILENCE:
+                        #new_tensor = torch.zeros_like(inputs)
+                        #inputs = torch.cat((inputs, new_tensor), dim=1)
+                        #new_tensor = torch.zeros_like(labels)
+                        #labels = torch.cat((labels, new_tensor), dim=1)
                     if APPEND_SILENCE:
-                        new_tensor = torch.zeros_like(inputs)
-                        inputs = torch.cat((inputs, new_tensor), dim=1)
-                        new_tensor = torch.zeros_like(labels)
-                        labels = torch.cat((labels, new_tensor), dim=1)
+                        di1, di2, di3 = inputs.shape
+                        zeros_tensor = torch.zeros((di1, CONV_MARGIN, di3), dtype=data.dtype, device=data.device)
+                        inputs = torch.cat((zeros_tensor, inputs, zeros_tensor), dim=1)
+                        labels = torch.cat((zeros_tensor, labels, zeros_tensor), dim=1)
+
                     nsamples = nsamples + 1
                     if (nsamples > 100):
                         break
@@ -580,7 +586,7 @@ def train_model(tr_data, val_data, tr_model):
                     noice = val_data.get_noise_choice(nsamples - 1)
                     # torch.sqrt(torch.mean(torch.tensor(self.pink_noise) ** 2))
                     noise_rms = val_data.get_rms()
-                    noise_db = 10.0 * math.log10(noise_rms)
+                    noise_db = 10.0 * math.log10(noise_rms * (di2/(CONV_MARGIN*2 + di2)) )
                     """if (noice == 1):
                         noise_db = -15.9789
                     if (noice == 2):

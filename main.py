@@ -581,19 +581,19 @@ def train_model(tr_data, val_data, tr_model):
                     remainder_db = 10.0 * math.log10(remainder_rms)
                     #l1_noise_remaining = 10.0 * math.log10(L1_loss_func((outputs - labels), zeros).item())
                     SNR_fac = val_data.get_SNR_fac(nsamples - 1)
-                    fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
+                    #fac_noise_red = 10.0 * math.log10(1.0 - SNR_fac)
                     noise_db = 0.0
                     noice = val_data.get_noise_choice(nsamples - 1)
                     # torch.sqrt(torch.mean(torch.tensor(self.pink_noise) ** 2))
-                    noise_rms = val_data.get_rms()
-                    noise_db = 10.0 * math.log10(noise_rms * (di2/(CONV_MARGIN*2 + di2)) )
+                    noise_rms = val_data.get_rms() * SNR_fac * ( di2/(CONV_MARGIN*2 + di2) )
+                    noise_db = 10.0 * math.log10(noise_rms)
                     """if (noice == 1):
                         noise_db = -15.9789
                     if (noice == 2):
                         noise_db = -7.77903
                     if (noice == 3):
                         noise_db = -15.6357"""
-                    val_loss = val_loss + (remainder_db - noise_db - fac_noise_red)
+                    val_loss = val_loss + (remainder_db - noise_db)# - fac_noise_red)
                     #val_l1_loss = val_l1_loss + (l1_noise_remaining - noise_db - fac_noise_red)
             val_loss /= 100.0  # /= len(val_dataloader.dataset)
             val_l1_loss /= 100.0

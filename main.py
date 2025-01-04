@@ -386,8 +386,14 @@ class SequenceToSequenceRNN(nn.Module):
         dilation = 4
         kernel_size = 129
         self.conv1 = CausalConv1D(in_channels=1, out_channels=dim, kernel_size=513)#, padding=256)
-        self.conv2 = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
-        self.conv3 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
+        self.conv_n_2_n = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
+        self.conv_n_2_1 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
+
+        dilation = 4
+        kernel_size = 129
+        # padding = int(dilation * (kernel_size - 1) // 2)
+        self.conv_n_2_n_b = CausalConv1D(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
+                                                dilation=dilation)  # , padding=padding)
 
         #self.scalar1 = nn.Parameter(torch.ones(1))
         #self.scalar2 = nn.Parameter(torch.ones(1))
@@ -404,11 +410,7 @@ class SequenceToSequenceRNN(nn.Module):
 
         self.parallel_convs = ParallelDilatedConv1d(1, 1, 33, DIM)## used to be 33
 
-        dilation = 4
-        kernel_size = 129
-        #padding = int(dilation * (kernel_size - 1) // 2)
-        self.conv_after_parallel = CausalConv1D(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
-                                             dilation=dilation)#, padding=padding)
+
         """
         # self.conv_after_parallel2 = nn.Conv1d(in_channels=DIM, out_channels=DIM, kernel_size=kernel_size,
         #                                     padding=padding, dilation=dilation)
@@ -451,7 +453,7 @@ class SequenceToSequenceRNN(nn.Module):
         # out = self.LN(out)
         out = self.s5(out)
         out = out.permute(0, 2, 1)
-        out = self.conv_after_parallel(out) # no ReLU in here fyi, equal to conv2
+        out = self.conv_n_2_n(out) # no ReLU in here fyi, equal to conv2
         out = out.permute(0, 2, 1)
         out = self.LN(out)
         out = self.relu(out) + res#*self.scalar1
@@ -461,12 +463,12 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.s5b(out)
         #out = self.LN(out)
         out = out.permute(0, 2, 1)
-        out = self.conv2(out) # equal to conv_after_parallel
+        out = self.conv_n_2_n_b(out) # equal to conv_after_parallel
         out = out.permute(0, 2, 1)
         out = self.relu(out) + res#self.scalar2
         out = self.s5c(out)
         out = out.permute(0, 2, 1)
-        out = self.conv3(out)#l2(out)
+        out = self.conv_n_2_1(out)#l2(out)
         out = out.permute(0, 2, 1)
         return out
 

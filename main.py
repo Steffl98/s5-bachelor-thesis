@@ -384,9 +384,12 @@ class SequenceToSequenceRNN(nn.Module):
         self.s5c = s5.S5(dim, state_dim)
 
         dilation = 4
-        kernel_size = 129
+        kernel_size = 33#129
         self.conv1 = CausalConv1D(in_channels=1, out_channels=dim, kernel_size=513)#, padding=256)
         self.conv_n_2_n = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)#, padding=256)#nn.Conv1d(in_channels=self.dim, out_channels=self.dim, kernel_size=257, padding=128)
+        self.conv_n_2_n_u = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)
+        self.conv_n_2_n_v = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)
+        self.conv_n_2_n_w = CausalConv1D(in_channels=dim, out_channels=dim, kernel_size=kernel_size, dilation=dilation)
         self.conv_n_2_1 = CausalConv1D(in_channels=dim, out_channels=1, kernel_size=1)#, padding=0)
 
         dilation = 4
@@ -454,6 +457,12 @@ class SequenceToSequenceRNN(nn.Module):
         out = self.s5(out)
         out = out.permute(0, 2, 1)
         out = self.conv_n_2_n(out) # no ReLU in here fyi, equal to conv2
+        out = self.relu(out)
+        out = self.conv_n_2_n_u(out) # no ReLU in here fyi, equal to conv2
+        out = self.relu(out)
+        out = self.conv_n_2_n_v(out) # no ReLU in here fyi, equal to conv2
+        out = self.relu(out)
+        out = self.conv_n_2_n_w(out) # no ReLU in here fyi, equal to conv2
         out = out.permute(0, 2, 1)
         out = self.LN(out)
         out = self.relu(out) + res#*self.scalar1
